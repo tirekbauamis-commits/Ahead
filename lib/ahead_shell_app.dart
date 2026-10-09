@@ -2514,15 +2514,15 @@ class LearnPage extends StatelessWidget {
     final ordered = aheadStore.subjectsForCurrentUser();
     return AheadScroll(
       children: [
-        const Text('KURIKULUM MERDEKA X',
+        Text('KURIKULUM MERDEKA X',
             style: TextStyle(
                 color: AheadColors.blue,
                 letterSpacing: .8,
                 fontWeight: FontWeight.w800)),
         const SizedBox(height: 6),
-        const Text('Pilih Fokus\nBelajarmu',
+        Text('Pilih Fokus\nBelajarmu',
             style: TextStyle(
-                color: Colors.black,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 29,
                 height: 1.15,
                 fontWeight: FontWeight.w900)),
@@ -2567,14 +2567,14 @@ class PracticePage extends StatelessWidget {
     final materials = aheadStore.materialsForCurrentUser();
     return AheadScroll(
       children: [
-        const Text('Latihan Soal',
+        Text('Latihan Soal',
             style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
-                color: Colors.black)),
+                color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 6),
-        const Text('Pilih materi dulu, lalu tentukan tipe latihanmu.',
-            style: TextStyle(color: AheadColors.text)),
+        Text('Pilih materi dulu, lalu tentukan tipe latihanmu.',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 18),
         PracticeIntroCard(),
         const SizedBox(height: 18),
@@ -2604,13 +2604,16 @@ class ExamPage extends StatelessWidget {
         aheadStore.subjectsForCurrentUser().map((item) => item.name).toList();
     return AheadScroll(
       children: [
-        const Text('Pusat Ujian',
-            style: TextStyle(fontSize: 24, color: Colors.black)),
+        Text('Pusat Ujian',
+            style: TextStyle(
+                fontSize: 24, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 10),
-        const Text(
+        Text(
             'Pilih modul ujian yang ingin kamu persiapkan, lalu mulai latihan.',
-            style:
-                TextStyle(fontSize: 20, height: 1.35, color: AheadColors.text)),
+            style: TextStyle(
+                fontSize: 20,
+                height: 1.35,
+                color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 26),
         FeaturedExamCard(exam: featured),
         const SizedBox(height: 22),
@@ -2658,10 +2661,10 @@ class ProfilePage extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               Text(user.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
-                      color: Colors.black)),
+                      color: Theme.of(context).colorScheme.onSurface)),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
@@ -2693,10 +2696,10 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        const Text('Menu Utama',
+        Text('Menu Utama',
             style: TextStyle(
                 fontSize: 18,
-                color: AheadColors.text,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w700)),
         const SizedBox(height: 12),
         AheadCard(
@@ -2730,10 +2733,10 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        const Text('Pengaturan & Aktivitas',
+        Text('Pengaturan & Aktivitas',
             style: TextStyle(
                 fontSize: 18,
-                color: AheadColors.text,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w700)),
         const SizedBox(height: 12),
         AheadCard(
@@ -2934,8 +2937,9 @@ class _PracticeSetupPageState extends State<PracticeSetupPage> {
                 const SizedBox(height: 14),
                 Text(
                     'Pilih tipe latihan, lalu konfirmasi kesiapanmu sebelum timer dimulai.',
-                    style:
-                        const TextStyle(color: AheadColors.text, height: 1.45)),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        height: 1.45)),
               ],
             ),
           ),
@@ -3150,8 +3154,10 @@ class _PracticeQuestionPageState extends State<PracticeQuestionPage> {
                 ),
                 const SizedBox(height: 18),
                 Text(question.question,
-                    style: const TextStyle(
-                        fontSize: 17, height: 1.45, color: Colors.black)),
+                    style: TextStyle(
+                        fontSize: 17,
+                        height: 1.45,
+                        color: Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(height: 18),
                 if (widget.mode == PracticeMode.multipleChoice)
                   ...List.generate(question.options.length, (i) {
@@ -3392,8 +3398,10 @@ class _ExamQuestionPageState extends State<ExamQuestionPage> {
                         color: AheadColors.blue, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 16),
                 Text(question.question,
-                    style: const TextStyle(
-                        fontSize: 17, height: 1.45, color: Colors.black)),
+                    style: TextStyle(
+                        fontSize: 17,
+                        height: 1.45,
+                        color: Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(height: 18),
                 ...List.generate(
                     question.options.length,
@@ -4283,7 +4291,7 @@ class AheadTopBar extends StatelessWidget {
       child: Row(
         children: [
           if (onBack == null)
-            const AheadLogo(size: 26, showText: false)
+            const AheadLogo(size: 30)
           else
             IconButton(
               tooltip: 'Kembali',
@@ -4296,12 +4304,19 @@ class AheadTopBar extends StatelessWidget {
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
-          const SizedBox(width: 10),
-          Text(title,
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  color: dark ? Colors.white : AheadColors.navy)),
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: dark ? const Color(0xFF243043) : AheadColors.softBlue,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(title,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: dark ? Colors.white : AheadColors.blue)),
+          ),
           const Spacer(),
           IconButton(
               tooltip: dark ? 'Mode siang' : 'Mode malam',
@@ -4802,17 +4817,19 @@ class AheadLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = dark ? Colors.white : AheadColors.navy;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         CustomPaint(size: Size(size, size), painter: AheadLogoPainter()),
         if (showText) ...[
-          const SizedBox(width: 10),
-          const Text('AHEAD',
+          SizedBox(width: size > 40 ? 10 : 7),
+          Text('AHEAD',
               style: TextStyle(
                   fontWeight: FontWeight.w900,
-                  color: AheadColors.navy,
-                  fontSize: 28)),
+                  color: textColor,
+                  fontSize: size > 50 ? 28 : 19)),
         ],
       ],
     );
@@ -5038,7 +5055,7 @@ class QuickActions extends StatelessWidget {
               child: Container(
                 height: 76,
                 decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: const [
                       BoxShadow(color: Color(0x06000000), blurRadius: 12)
@@ -5056,8 +5073,9 @@ class QuickActions extends StatelessWidget {
                             Icon(item.$1, color: AheadColors.blue, size: 18)),
                     const SizedBox(height: 7),
                     Text(item.$2,
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.black)),
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.onSurface)),
                   ],
                 ),
               ),
@@ -5437,7 +5455,7 @@ class SmallSubjectCard extends StatelessWidget {
         width: 126,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(14),
             boxShadow: const [
               BoxShadow(color: Color(0x06000000), blurRadius: 12)
@@ -5448,7 +5466,9 @@ class SmallSubjectCard extends StatelessWidget {
           Text(subject.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w800)),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.w800)),
           Text('${aheadStore.materialsForSubject(subject.id).length} Modul',
               style: const TextStyle(color: AheadColors.muted, fontSize: 11)),
         ]),
@@ -5471,8 +5491,9 @@ class SubjectDetailPage extends StatelessWidget {
         children: [
           AheadCard(
               child: Text(subject.description,
-                  style:
-                      const TextStyle(color: AheadColors.text, height: 1.45))),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      height: 1.45))),
           const SizedBox(height: 16),
           ...materials.map((item) => MaterialTile(material: item)),
           if (materials.isEmpty)
@@ -5520,10 +5541,12 @@ class SubjectListCard extends StatelessWidget {
                         Row(children: [
                           Expanded(
                               child: Text(subject.name,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w900,
-                                      color: Colors.black))),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface))),
                           if (subject.id == 1)
                             const AheadPill('Wajib', AheadColors.softBlue)
                         ]),
@@ -5944,8 +5967,9 @@ class ExamListCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                   Text(exam.title,
-                      style:
-                          const TextStyle(fontSize: 20, color: Colors.black)),
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: Theme.of(context).colorScheme.onSurface)),
                   Text(exam.description,
                       style: const TextStyle(color: AheadColors.muted))
                 ])),
@@ -6117,7 +6141,7 @@ class SearchEntry extends StatelessWidget {
         height: 52,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AheadColors.line)),
         child: Row(children: [
@@ -6157,7 +6181,7 @@ class ChoiceCard extends StatelessWidget {
         height: 118,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
                 color: selected ? AheadColors.blue : const Color(0xFFD8E4F5),
@@ -6166,8 +6190,10 @@ class ChoiceCard extends StatelessWidget {
           Icon(icon, color: AheadColors.blue),
           const Spacer(),
           Text(title,
-              style:
-                  const TextStyle(fontWeight: FontWeight.w900, fontSize: 17)),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 17)),
           Text(subtitle,
               style: const TextStyle(color: AheadColors.muted, fontSize: 11))
         ]),
@@ -6293,9 +6319,9 @@ class SectionHeader extends StatelessWidget {
     return Row(children: [
       Expanded(
           child: Text(title,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 17,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w900))),
       if (action != null) TextButton(onPressed: onTap, child: Text(action!))
     ]);
@@ -6317,8 +6343,10 @@ class TopicChips extends StatelessWidget {
             label: Text(labels[i]),
             backgroundColor:
                 i == 0 ? AheadColors.blue : const Color(0xFFE9EDF2),
-            labelStyle:
-                TextStyle(color: i == 0 ? Colors.white : AheadColors.text)),
+            labelStyle: TextStyle(
+                color: i == 0
+                    ? Colors.white
+                    : Theme.of(context).colorScheme.onSurface)),
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemCount: labels.length,
       ),
@@ -6347,7 +6375,11 @@ class OptionTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
-            color: selected ? const Color(0xFFEAF1FF) : const Color(0xFFF8FAFC),
+            color: selected
+                ? const Color(0xFFEAF1FF)
+                : Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF111827)
+                    : const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
                 color: selected ? AheadColors.blue : AheadColors.line,
@@ -6363,7 +6395,9 @@ class OptionTile extends StatelessWidget {
                       fontWeight: FontWeight.w900))),
           const SizedBox(width: 12),
           Expanded(
-              child: Text(text, style: const TextStyle(color: Colors.black)))
+              child: Text(text,
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface)))
         ]),
       ),
     );
@@ -6380,10 +6414,11 @@ class ConfidenceBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final options = ['Menebak', 'Cukup Yakin', 'Sangat Yakin'];
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-          color: const Color(0xFFF2F5FA),
+          color: dark ? const Color(0xFF111827) : const Color(0xFFF2F5FA),
           borderRadius: BorderRadius.circular(12)),
       child: Column(children: [
         const Text('Seberapa yakin kamu dengan jawabanmu?',
@@ -6403,7 +6438,11 @@ class ConfidenceBar extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 13),
                   decoration: BoxDecoration(
-                    color: active ? const Color(0xFFDCE3FF) : Colors.white,
+                    color: active
+                        ? const Color(0xFFDCE3FF)
+                        : dark
+                            ? const Color(0xFF1F2937)
+                            : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                         color: active ? AheadColors.blue : AheadColors.line),
@@ -6411,7 +6450,9 @@ class ConfidenceBar extends StatelessWidget {
                   child: Text(option,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: active ? AheadColors.blue : AheadColors.text,
+                          color: active
+                              ? AheadColors.blue
+                              : Theme.of(context).colorScheme.onSurface,
                           fontWeight:
                               active ? FontWeight.w900 : FontWeight.w500)),
                 ),
@@ -6440,10 +6481,13 @@ class StatTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-          color: const Color(0xFFF1F4F8),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF111827)
+              : const Color(0xFFF1F4F8),
           borderRadius: BorderRadius.circular(14)),
       child: Column(children: [
-        Text(title, style: const TextStyle(color: AheadColors.text)),
+        Text(title,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 8),
         Text(value,
             style: const TextStyle(
@@ -6451,7 +6495,8 @@ class StatTile extends StatelessWidget {
                 fontWeight: FontWeight.w900,
                 color: AheadColors.blue)),
         if (suffix.isNotEmpty)
-          Text(suffix, style: const TextStyle(color: AheadColors.text))
+          Text(suffix,
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface))
       ]),
     );
   }
@@ -6486,8 +6531,10 @@ class MenuRow extends StatelessWidget {
               : const Color(0xFFE9EDF3),
           iconColor: AheadColors.navy),
       title: Text(title,
-          style: const TextStyle(
-              fontSize: 19, fontWeight: FontWeight.w500, color: Colors.black)),
+          style: TextStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurface)),
       subtitle: Text(subtitle),
       trailing: Row(mainAxisSize: MainAxisSize.min, children: [
         if (dot) const Icon(Icons.circle, color: AheadColors.blue, size: 10),
