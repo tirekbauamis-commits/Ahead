@@ -361,6 +361,7 @@ class AheadStore {
   String? _resetEmail;
   String? _resetCode;
   bool _loaded = false;
+  final ValueNotifier<int> revision = ValueNotifier(0);
   final ValueNotifier<ThemeMode> themeMode = ValueNotifier(ThemeMode.light);
 
   String get _themeModeName =>
@@ -736,6 +737,7 @@ class AheadStore {
 
   void _queueSave() {
     if (!_loaded) return;
+    revision.value++;
     unawaited(_save());
   }
 
@@ -994,12 +996,13 @@ class AheadStore {
 
   AheadUser _upsertApiUser(Map<String, dynamic> data, {String? password}) {
     final email = _asString(data['email']).toLowerCase();
+    final incomingName = _asString(data['name'], 'Siswa');
     final matches = _users.where((user) => user.email == email);
     final user = matches.isNotEmpty
         ? matches.first
         : AheadUser(
             id: _asInt(data['id'], _nextUserId++),
-            name: _asString(data['name'], 'Siswa'),
+            name: incomingName,
             email: email,
             passwordDigest: '',
             classLevel: _asString(data['class'], 'Kelas X'),
@@ -1008,7 +1011,11 @@ class AheadStore {
             photoUrl: _nullableString(data['profile_photo']),
           );
     if (matches.isEmpty) _users.add(user);
-    user.name = _asString(data['name'], user.name);
+    user.name = _bestDisplayName(
+      currentName: user.name,
+      incomingName: incomingName,
+      email: email,
+    );
     user.classLevel = _asString(data['class'], user.classLevel);
     user.major = _asString(data['major'], user.major) == 'IPS' ? 'IPS' : 'IPA';
     user.provider = _asString(data['provider'], user.provider);
@@ -1017,6 +1024,24 @@ class AheadStore {
       user.passwordDigest = _digest(email, password);
     }
     return user;
+  }
+
+  String _bestDisplayName({
+    required String currentName,
+    required String incomingName,
+    required String email,
+  }) {
+    final current = currentName.trim();
+    final incoming = incomingName.trim();
+    final generated = _nameFromEmail(email);
+    if (current.isNotEmpty &&
+        current != 'Siswa' &&
+        current != 'Siswa AHEAD' &&
+        current != generated) {
+      return current;
+    }
+    if (incoming.isNotEmpty) return incoming;
+    return generated;
   }
 
   String _friendlyApiError(Object error) {
@@ -1108,20 +1133,26 @@ class AheadStore {
       });
       final local = _users.where((user) => user.email == normalizedEmail);
       if (local.isEmpty) {
-        _users.add(AheadUser(
+        final user = AheadUser(
           id: _nextUserId++,
           name: trimmedName,
           email: normalizedEmail,
           passwordDigest: _digest(normalizedEmail, password),
           classLevel: classLevel,
           major: major,
-        ));
+        );
+        _users.add(user);
+        currentUser = user;
+        user.history.add('Daftar akun pada ${_shortDate(DateTime.now())}');
       } else {
         final user = local.first;
         user.name = trimmedName;
         user.passwordDigest = _digest(normalizedEmail, password);
         user.classLevel = classLevel;
         user.major = major;
+        currentUser = user;
+        user.history
+            .add('Masuk setelah daftar pada ${_shortDate(DateTime.now())}');
       }
       _queueSave();
       return null;
@@ -1188,6 +1219,59 @@ class AheadStore {
     }
   }
 
+  Future<String?> loginWithGoogleProfile({
+    required String email,
+    required String name,
+    String? major,
+    String? photoUrl,
+  }) async {
+    await ensureLoaded();
+    final normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail.endsWith('@gmail.com') ||
+        !normalizedEmail.contains('@')) {
+      return 'Gunakan alamat Gmail yang valid untuk masuk dengan Google.';
+    }
+    final matches = _users.where((user) => user.email == normalizedEmail);
+    final user = matches.isNotEmpty
+        ? matches.first
+        : AheadUser(
+            id: _nextUserId++,
+            name: name.trim().isEmpty
+                ? _nameFromEmail(normalizedEmail)
+                : name.trim(),
+            email: normalizedEmail,
+            passwordDigest: 'google::$normalizedEmail',
+            classLevel: 'Kelas X',
+            major: major == 'IPS' ? 'IPS' : 'IPA',
+            provider: 'google',
+            photoUrl: photoUrl,
+          );
+    if (matches.isEmpty) _users.add(user);
+    user.name = _bestDisplayName(
+      currentName: user.name,
+      incomingName: name,
+      email: normalizedEmail,
+    );
+    user.provider = 'google';
+    user.classLevel = 'Kelas X';
+    user.major = major == 'IPS' ? 'IPS' : user.major;
+    if (photoUrl != null && photoUrl.isNotEmpty) user.photoUrl = photoUrl;
+    currentUser = user;
+    user.history.add('Login Google pada ${_shortDate(DateTime.now())}');
+    _queueSave();
+    return null;
+  }
+
+  List<AheadUser> googleAccountChoices() {
+    final items = _users
+        .where((user) =>
+            user.email.toLowerCase().endsWith('@gmail.com') ||
+            user.provider == 'google')
+        .toList();
+    items.sort((a, b) => a.name.compareTo(b.name));
+    return items;
+  }
+
   Future<String?> createResetCodeWithApi(String email) async {
     await ensureLoaded();
     try {
@@ -1248,14 +1332,17 @@ class AheadStore {
     if (classLevel == 'Kelas') return 'Kelas wajib dipilih.';
     if (_users.any((user) => user.email == normalizedEmail))
       return 'Email sudah terdaftar.';
-    _users.add(AheadUser(
+    final user = AheadUser(
       id: _nextUserId++,
       name: trimmedName,
       email: normalizedEmail,
       passwordDigest: _digest(normalizedEmail, password),
       classLevel: classLevel,
       major: major,
-    ));
+    );
+    _users.add(user);
+    currentUser = user;
+    user.history.add('Daftar akun pada ${_shortDate(DateTime.now())}');
     _queueSave();
     return null;
   }
@@ -1274,7 +1361,10 @@ class AheadStore {
     return null;
   }
 
-  void logout() => currentUser = null;
+  void logout() {
+    currentUser = null;
+    _queueSave();
+  }
 
   bool _validPassword(String password) {
     return password.length >= 8 &&
@@ -2010,10 +2100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-          builder: (_) => const LoginScreen(
-              notice:
-                  'Akun berhasil dibuat. Silakan login manual menggunakan akun baru.')),
+      MaterialPageRoute(builder: (_) => const MainShell()),
       (_) => false,
     );
   }
@@ -2289,6 +2376,22 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   late int index = widget.initialIndex;
 
+  void _storeListener() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    aheadStore.revision.addListener(_storeListener);
+  }
+
+  @override
+  void dispose() {
+    aheadStore.revision.removeListener(_storeListener);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = aheadStore.currentUser;
@@ -2307,7 +2410,6 @@ class _MainShellState extends State<MainShell> {
           children: [
             AheadTopBar(
                 title: titles[index],
-                onBack: index == 0 ? null : () => setState(() => index = 0),
                 onProfile: () => setState(() => index = 4)),
             Expanded(child: pages[index]),
           ],
@@ -4501,6 +4603,7 @@ class _GoogleAuthButtonState extends State<GoogleAuthButton> {
             'Di Flutter Web, gunakan tombol Google resmi yang muncul di bawah tombol ini.');
         return;
       }
+      await GoogleSignIn.instance.signOut();
       final account = await GoogleSignIn.instance.authenticate();
       await _submitGoogleAccount(account);
     } on GoogleSignInException catch (error) {
@@ -4527,8 +4630,17 @@ class _GoogleAuthButtonState extends State<GoogleAuthButton> {
       );
       if (!mounted) return;
       if (result != null) {
-        widget.onError(result);
-        return;
+        final fallback = await aheadStore.loginWithGoogleProfile(
+          email: account.email,
+          name: account.displayName ?? '',
+          major: widget.major,
+          photoUrl: account.photoUrl,
+        );
+        if (!mounted) return;
+        if (fallback != null) {
+          widget.onError(result);
+          return;
+        }
       }
       widget.onSuccess();
     } finally {
@@ -4550,7 +4662,7 @@ class _GoogleAuthButtonState extends State<GoogleAuthButton> {
     return showConfigDialog(
       context,
       'Google Sign-In belum siap',
-      'Agar muncul pilihan akun Google seperti contoh, isi GOOGLE_CLIENT_ID resmi dari Google Cloud di backend/.env, lalu jalankan ulang aplikasi lewat JALANKAN_AHEAD.bat. Di Chrome web tampilannya berupa popup Google resmi; tampilan daftar akun gelap seperti contoh muncul saat aplikasi dijalankan di Android.',
+      'Agar muncul pilihan akun Gmail resmi, isi GOOGLE_CLIENT_ID dari Google Cloud di backend/.env, lalu jalankan ulang lewat JALANKAN_AHEAD.bat. Setelah aktif, aplikasi akan memaksa pilih akun ulang sebelum login.',
     );
   }
 
@@ -4558,9 +4670,9 @@ class _GoogleAuthButtonState extends State<GoogleAuthButton> {
   Widget build(BuildContext context) {
     if (googleClientId.isEmpty) {
       return AheadOutlineButton(
-        label: widget.label,
+        label: busy ? 'Memproses Google...' : widget.label,
         icon: Icons.g_mobiledata_rounded,
-        onPressed: _startNativeGoogleSignIn,
+        onPressed: busy ? () {} : _startNativeGoogleSignIn,
       );
     }
     return FutureBuilder<void>(
@@ -4582,7 +4694,17 @@ class _GoogleAuthButtonState extends State<GoogleAuthButton> {
           );
         }
         if (kIsWeb && !GoogleSignIn.instance.supportsAuthenticate()) {
-          return Center(child: google_web.renderGoogleSignInButton());
+          return Column(
+            children: [
+              AheadOutlineButton(
+                label: busy ? 'Memproses Google...' : widget.label,
+                icon: Icons.g_mobiledata_rounded,
+                onPressed: busy ? () {} : _startNativeGoogleSignIn,
+              ),
+              const SizedBox(height: 10),
+              Center(child: google_web.renderGoogleSignInButton()),
+            ],
+          );
         }
         return AheadOutlineButton(
           label: busy ? 'Memproses Google...' : widget.label,
