@@ -7155,43 +7155,97 @@ class UpcomingScheduleCard extends StatelessWidget {
               color: Color(0x30B91C1C), blurRadius: 24, offset: Offset(0, 10))
         ],
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const IconBox(
-              icon: Icons.event_available_outlined,
-              color: Color(0x33FFFFFF),
-              iconColor: Colors.white),
-          const SizedBox(width: 10),
-          const Expanded(
-            child: Text('UJIAN TERDEKAT',
-                style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w900)),
+      child: Stack(
+        children: [
+          const Positioned(top: -4, right: -2, child: AnimatedFireCorner()),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const IconBox(
+                  icon: Icons.event_available_outlined,
+                  color: Color(0x33FFFFFF),
+                  iconColor: Colors.white),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text('UJIAN TERDEKAT',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.w900)),
+              ),
+              const SizedBox(width: 48),
+              AheadPill(schedule.dayLabel, Colors.white,
+                  textColor: const Color(0xFFB91C1C)),
+            ]),
+            const SizedBox(height: 14),
+            Text(schedule.title,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900)),
+            const SizedBox(height: 6),
+            Text('${subject.name} - ${schedule.type}',
+                style: const TextStyle(color: Colors.white70)),
+            const SizedBox(height: 14),
+            Row(children: [
+              const Text('Kesiapan',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w700)),
+              const Spacer(),
+              Text('$readiness%',
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w900)),
+            ]),
+            const SizedBox(height: 8),
+            AheadProgress(value: readiness / 100, color: Colors.white),
+          ]),
+        ],
+      ),
+    );
+  }
+}
+
+class AnimatedFireCorner extends StatefulWidget {
+  const AnimatedFireCorner({super.key});
+
+  @override
+  State<AnimatedFireCorner> createState() => _AnimatedFireCornerState();
+}
+
+class _AnimatedFireCornerState extends State<AnimatedFireCorner>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 950),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        final value = controller.value;
+        return Transform.scale(
+          scale: .92 + value * .12,
+          child: Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: .16 + value * .10),
+            ),
+            child: Icon(
+              Icons.local_fire_department_rounded,
+              color: Color.lerp(
+                  const Color(0xFFFFD166), Colors.white, value * .35),
+              size: 34,
+            ),
           ),
-          AheadPill(schedule.dayLabel, Colors.white,
-              textColor: const Color(0xFFB91C1C)),
-        ]),
-        const SizedBox(height: 14),
-        Text(schedule.title,
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w900)),
-        const SizedBox(height: 6),
-        Text('${subject.name} - ${schedule.type}',
-            style: const TextStyle(color: Colors.white70)),
-        const SizedBox(height: 14),
-        Row(children: [
-          const Text('Kesiapan',
-              style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-          const Spacer(),
-          Text('$readiness%',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w900)),
-        ]),
-        const SizedBox(height: 8),
-        AheadProgress(value: readiness / 100, color: Colors.white),
-      ]),
+        );
+      },
     );
   }
 }
