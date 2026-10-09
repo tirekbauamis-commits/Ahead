@@ -4348,11 +4348,13 @@ class AheadCard extends StatelessWidget {
       {super.key,
       required this.child,
       this.padding = const EdgeInsets.all(18),
-      this.color});
+      this.color,
+      this.border});
 
   final Widget child;
   final EdgeInsets padding;
   final Color? color;
+  final BoxBorder? border;
 
   @override
   Widget build(BuildContext context) {
@@ -4362,6 +4364,7 @@ class AheadCard extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: resolvedColor,
+        border: border,
         borderRadius: BorderRadius.circular(14),
         boxShadow: const [
           BoxShadow(
@@ -6991,7 +6994,7 @@ class UpcomingScheduleCard extends StatelessWidget {
               iconColor: Colors.white),
           const SizedBox(width: 10),
           const Expanded(
-            child: Text('UJIAN YANG AKAN DATANG',
+            child: Text('UJIAN TERDEKAT',
                 style: TextStyle(
                     color: Colors.white, fontWeight: FontWeight.w900)),
           ),
@@ -7042,6 +7045,7 @@ class ScheduleCountdownSummary extends StatelessWidget {
       color: Theme.of(context).brightness == Brightness.dark
           ? const Color(0xFF30131A)
           : const Color(0xFFFFF1F2),
+      border: Border.all(color: const Color(0xFFFFCDD2)),
       child: Row(
         children: [
           const IconBox(
