@@ -3812,11 +3812,6 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                   label: Text(AheadStore.shortDate(selectedDate)),
                 ),
                 const SizedBox(height: 12),
-                ExamCountdownPreview(
-                  daysLeft: _daysUntil(selectedDate),
-                  label: _timelineText(selectedDate),
-                ),
-                const SizedBox(height: 12),
                 TextField(
                     controller: notes,
                     decoration: const InputDecoration(
@@ -3874,21 +3869,6 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
         ],
       ),
     );
-  }
-
-  int _daysUntil(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final target = DateTime(date.year, date.month, date.day);
-    return target.difference(today).inDays;
-  }
-
-  String _timelineText(DateTime date) {
-    final days = _daysUntil(date);
-    if (days < 0) return 'Ujian sudah lewat ${days.abs()} hari';
-    if (days == 0) return 'Ujian hari ini. Fokus ke review ringan.';
-    if (days == 1) return 'Ujian besok. Jaga tempo dan tidur cukup.';
-    return 'Ujian dalam $days hari. Timeline persiapan sudah dimulai.';
   }
 }
 
@@ -6569,61 +6549,6 @@ class PlanTile extends StatelessWidget {
           title: Text(plan.title),
           subtitle: Text('${plan.subject} - ${plan.duration} menit'),
         ),
-      ),
-    );
-  }
-}
-
-class ExamCountdownPreview extends StatelessWidget {
-  const ExamCountdownPreview({
-    super.key,
-    required this.daysLeft,
-    required this.label,
-  });
-
-  final int daysLeft;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final urgent = daysLeft <= 7 && daysLeft >= 0;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        gradient: LinearGradient(
-          colors: urgent
-              ? const [Color(0xFFFF6B2A), Color(0xFFFFC857)]
-              : const [Color(0xFFFF9F1C), Color(0xFFFFE7BA)],
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.local_fire_department_rounded,
-              color: Colors.white, size: 30),
-          const SizedBox(width: 12),
-          Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(
-                daysLeft < 0
-                    ? 'Jadwal lewat'
-                    : daysLeft == 0
-                        ? 'Ujian hari ini'
-                        : '$daysLeft hari lagi',
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 3),
-              Text(label,
-                  style: const TextStyle(
-                      color: Colors.white, height: 1.35, fontSize: 12)),
-            ]),
-          ),
-        ],
       ),
     );
   }
