@@ -1022,13 +1022,63 @@ class AheadStore {
   String _friendlyApiError(Object error) {
     if (error is AuthApiException) return error.message;
     final text = '$error';
-    if (text.contains('XMLHttpRequest') ||
-        text.contains('ProgressEvent') ||
-        text.contains('SocketException') ||
-        text.contains('Failed to fetch')) {
+    if (_isBackendOfflineError(error)) {
       return 'Backend API belum menyala. Jalankan file JALANKAN_AHEAD.bat dari folder C:\\ahead_app agar MySQL, API, dan Flutter aktif bersama.';
     }
     return text.replaceFirst('Exception: ', '');
+  }
+
+  bool _isBackendOfflineError(Object error) {
+    final text = error is AuthApiException ? error.message : '$error';
+    return text.contains('Backend API belum menyala') ||
+        text.contains('API tidak tersedia') ||
+        text.contains('XMLHttpRequest') ||
+        text.contains('ProgressEvent') ||
+        text.contains('SocketException') ||
+        text.contains('Failed to fetch') ||
+        text.contains('Connection refused');
+  }
+
+  AheadUser _upsertOfflineUser({
+    required String email,
+    required String password,
+    String? name,
+    String classLevel = 'Kelas X',
+    String major = 'IPA',
+  }) {
+    final normalizedEmail = email.trim().toLowerCase();
+    final matches = _users.where((user) => user.email == normalizedEmail);
+    final user = matches.isNotEmpty
+        ? matches.first
+        : AheadUser(
+            id: _nextUserId++,
+            name: (name == null || name.trim().isEmpty)
+                ? _nameFromEmail(normalizedEmail)
+                : name.trim(),
+            email: normalizedEmail,
+            passwordDigest: _digest(normalizedEmail, password),
+            classLevel: classLevel,
+            major: major == 'IPS' ? 'IPS' : 'IPA',
+            provider: 'offline',
+          );
+    if (matches.isEmpty) _users.add(user);
+    user.passwordDigest = _digest(normalizedEmail, password);
+    if (name != null && name.trim().isNotEmpty) user.name = name.trim();
+    user.classLevel = classLevel;
+    user.major = major == 'IPS' ? 'IPS' : 'IPA';
+    currentUser = user;
+    user.history.add('Login mode offline pada ${_shortDate(DateTime.now())}');
+    _queueSave();
+    return user;
+  }
+
+  String _nameFromEmail(String email) {
+    final base = email.split('@').first.replaceAll(RegExp(r'[._-]+'), ' ');
+    final words = base.split(' ').where((word) => word.trim().isNotEmpty).map(
+        (word) => word.length <= 1
+            ? word.toUpperCase()
+            : '${word[0].toUpperCase()}${word.substring(1)}');
+    return words.isEmpty ? 'Siswa AHEAD' : words.join(' ');
   }
 
   Future<String?> registerWithApi({
@@ -1076,6 +1126,16 @@ class AheadStore {
       _queueSave();
       return null;
     } catch (error) {
+      if (_isBackendOfflineError(error)) {
+        _upsertOfflineUser(
+          email: normalizedEmail,
+          password: password,
+          name: trimmedName,
+          classLevel: classLevel,
+          major: major,
+        );
+        return null;
+      }
       return _friendlyApiError(error);
     }
   }
@@ -1096,6 +1156,15 @@ class AheadStore {
     } catch (error) {
       final localResult = login(email, password);
       if (localResult == null) return null;
+      if (_isBackendOfflineError(error)) {
+        if (!localResult.contains('Akun tidak ditemukan')) return localResult;
+        if (!normalizedEmail.contains('@')) return 'Email tidak valid.';
+        if (!_validPassword(password)) {
+          return 'Password harus minimal 8 karakter, mengandung huruf besar dan angka.';
+        }
+        _upsertOfflineUser(email: normalizedEmail, password: password);
+        return null;
+      }
       return _friendlyApiError(error);
     }
   }
