@@ -1494,23 +1494,15 @@ class AheadStore {
     if (password != confirmPassword) return 'Konfirmasi password belum sama.';
     if (classLevel == 'Kelas') return 'Kelas wajib dipilih.';
     try {
-      final response = await _api.post('/auth/register', {
+      await _api.post('/auth/register', {
         'name': trimmedName,
         'email': normalizedEmail,
         'password': password,
         'class': classLevel,
         'major': major,
       });
-      final token = _asString(response['token']);
-      if (token.isNotEmpty) _authToken = token;
-      final apiUser = _asMap(response['user']);
       final local = _users.where((user) => user.email == normalizedEmail);
-      if (apiUser.isNotEmpty) {
-        final user = _upsertApiUser(apiUser, password: password);
-        currentUser = user;
-        user.history.add('Daftar akun pada ${_shortDate(DateTime.now())}');
-        await _syncSchedulesWithApi();
-      } else if (local.isEmpty) {
+      if (local.isEmpty) {
         final user = AheadUser(
           id: _nextUserId++,
           name: trimmedName,
@@ -1520,7 +1512,6 @@ class AheadStore {
           major: major,
         );
         _users.add(user);
-        currentUser = user;
         user.history.add('Daftar akun pada ${_shortDate(DateTime.now())}');
       } else {
         final user = local.first;
@@ -1528,21 +1519,33 @@ class AheadStore {
         user.passwordDigest = _digest(normalizedEmail, password);
         user.classLevel = classLevel;
         user.major = major;
-        currentUser = user;
         user.history
-            .add('Masuk setelah daftar pada ${_shortDate(DateTime.now())}');
+            .add('Memperbarui data daftar pada ${_shortDate(DateTime.now())}');
       }
+      _authToken = null;
+      currentUser = null;
       _queueSave();
       return null;
     } catch (error) {
       if (_isBackendOfflineError(error)) {
-        _upsertOfflineUser(
-          email: normalizedEmail,
-          password: password,
+        if (_users.any((user) => user.email == normalizedEmail)) {
+          return 'Email sudah terdaftar. Silakan login.';
+        }
+        final user = AheadUser(
+          id: _nextUserId++,
           name: trimmedName,
+          email: normalizedEmail,
+          passwordDigest: _digest(normalizedEmail, password),
           classLevel: classLevel,
           major: major,
+          provider: 'offline',
         );
+        _users.add(user);
+        _authToken = null;
+        currentUser = null;
+        user.history
+            .add('Daftar akun offline pada ${_shortDate(DateTime.now())}');
+        _queueSave();
         return null;
       }
       return _friendlyApiError(error);
@@ -2597,7 +2600,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const MainShell()),
+      MaterialPageRoute(
+          builder: (_) => const LoginScreen(
+              notice:
+                  'Akun berhasil dibuat. Silakan login ulang dengan email dan password yang baru didaftarkan.')),
       (_) => false,
     );
   }

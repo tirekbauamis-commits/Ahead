@@ -200,15 +200,7 @@ try {
             trim((string)$data['class']),
             $data['major'] === 'IPS' ? 'IPS' : 'IPA',
         ]);
-        $userId = (int)db()->lastInsertId();
-        $stmt = db()->prepare('SELECT * FROM users WHERE id = ? LIMIT 1');
-        $stmt->execute([$userId]);
-        $user = $stmt->fetch();
-        respond([
-            'message' => 'Akun berhasil dibuat.',
-            'token' => issue_token($userId),
-            'user' => public_user($user),
-        ], 201);
+        respond(['message' => 'Akun berhasil dibuat. Silakan login manual.'], 201);
     }
 
     if ($method === 'POST' && $path === '/auth/login') {
