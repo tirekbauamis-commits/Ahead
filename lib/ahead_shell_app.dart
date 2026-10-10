@@ -320,11 +320,56 @@ class ExamScheduleItem {
     return target.difference(today).inDays;
   }
 
+  DateTime get countdownTarget {
+    final dateOnly = date.hour == 0 &&
+        date.minute == 0 &&
+        date.second == 0 &&
+        date.millisecond == 0 &&
+        date.microsecond == 0;
+    if (!dateOnly) return date;
+    return DateTime(date.year, date.month, date.day, 23, 59, 59);
+  }
+
   String get dayLabel {
     if (daysLeft < 0) return 'Lewat ${daysLeft.abs()} hari';
     if (daysLeft == 0) return 'Hari ini';
     return '$daysLeft hari lagi';
   }
+
+  Duration get remaining => countdownTarget.difference(DateTime.now());
+
+  String get liveCountdownLabel => formatScheduleCountdown(remaining);
+}
+
+String formatScheduleCountdown(Duration remaining) {
+  final late = remaining.isNegative;
+  final duration = late ? -remaining : remaining;
+  final prefix = late ? 'Lewat ' : '';
+  if (duration.inDays >= 30) {
+    final months = duration.inDays ~/ 30;
+    final weeks = (duration.inDays % 30) ~/ 7;
+    return '$prefix$months bulan${weeks > 0 ? ' $weeks minggu' : ''}';
+  }
+  if (duration.inDays >= 7) {
+    final weeks = duration.inDays ~/ 7;
+    final days = duration.inDays % 7;
+    return '$prefix$weeks minggu${days > 0 ? ' $days hari' : ''}';
+  }
+  if (duration.inDays >= 1) {
+    final hours = duration.inHours % 24;
+    return '$prefix${duration.inDays} hari${hours > 0 ? ' $hours jam' : ''}';
+  }
+  if (duration.inHours >= 1) {
+    final minutes = duration.inMinutes % 60;
+    return '$prefix${duration.inHours} jam${minutes > 0 ? ' $minutes menit' : ''}';
+  }
+  if (duration.inMinutes >= 1) {
+    final seconds = duration.inSeconds % 60;
+    return '$prefix${duration.inMinutes} menit${seconds > 0 ? ' $seconds detik' : ''}';
+  }
+  return late
+      ? 'Lewat ${duration.inSeconds} detik'
+      : '${duration.inSeconds} detik lagi';
 }
 
 class StudyPlanItem {
@@ -7170,11 +7215,6 @@ class ScheduleTile extends StatelessWidget {
     final subject = aheadStore.subjectById(schedule.subjectId);
     final readiness = aheadStore.readinessForSubject(schedule.subjectId);
     final urgent = schedule.daysLeft <= 7 && schedule.daysLeft >= 0;
-    final countdown = schedule.daysLeft < 0
-        ? 'Lewat ${schedule.daysLeft.abs()} hari'
-        : schedule.daysLeft == 0
-            ? 'Hari ini'
-            : '${schedule.daysLeft} hari lagi';
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Container(
@@ -7227,8 +7267,12 @@ class ScheduleTile extends StatelessWidget {
                   ],
                 ),
               ),
-              AheadPill(countdown,
-                  schedule.daysLeft <= 3 ? AheadColors.peach : subject.tint),
+              LiveScheduleCountdownPill(
+                schedule: schedule,
+                color:
+                    schedule.daysLeft <= 3 ? AheadColors.peach : subject.tint,
+                textColor: AheadColors.navy,
+              ),
             ]),
             const SizedBox(height: 14),
             Container(
@@ -7419,6 +7463,85 @@ class InsightRow extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class LiveScheduleCountdownPill extends StatefulWidget {
+  const LiveScheduleCountdownPill({
+    super.key,
+    required this.schedule,
+    required this.color,
+    this.textColor,
+  });
+
+  final ExamScheduleItem schedule;
+  final Color color;
+  final Color? textColor;
+
+  @override
+  State<LiveScheduleCountdownPill> createState() =>
+      _LiveScheduleCountdownPillState();
+}
+
+class _LiveScheduleCountdownPillState extends State<LiveScheduleCountdownPill> {
+  late final Timer timer;
+
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AheadPill(widget.schedule.liveCountdownLabel, widget.color,
+        textColor: widget.textColor);
+  }
+}
+
+class LiveScheduleCountdownText extends StatefulWidget {
+  const LiveScheduleCountdownText({
+    super.key,
+    required this.schedule,
+    this.style,
+  });
+
+  final ExamScheduleItem schedule;
+  final TextStyle? style;
+
+  @override
+  State<LiveScheduleCountdownText> createState() =>
+      _LiveScheduleCountdownTextState();
+}
+
+class _LiveScheduleCountdownTextState extends State<LiveScheduleCountdownText> {
+  late final Timer timer;
+
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(widget.schedule.liveCountdownLabel, style: widget.style);
   }
 }
 
@@ -7819,8 +7942,11 @@ class UpcomingScheduleCard extends StatelessWidget {
                         color: Colors.white, fontWeight: FontWeight.w900)),
               ),
               const SizedBox(width: 48),
-              AheadPill(schedule.dayLabel, Colors.white,
-                  textColor: const Color(0xFFB91C1C)),
+              LiveScheduleCountdownPill(
+                schedule: schedule,
+                color: Colors.white,
+                textColor: const Color(0xFFB91C1C),
+              ),
             ]),
             const SizedBox(height: 14),
             Text(schedule.title,
@@ -7942,7 +8068,6 @@ class ScheduleCountdownSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final days = schedule.daysLeft;
-    final label = _countdownLabel(days);
     final caption = days < 0
         ? 'Jadwal ini sudah lewat. Pakai hasilnya untuk evaluasi target berikutnya.'
         : days == 0
@@ -7963,11 +8088,13 @@ class ScheduleCountdownSummary extends StatelessWidget {
           Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(label,
-                  style: const TextStyle(
-                      color: Color(0xFFDC2626),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900)),
+              LiveScheduleCountdownText(
+                schedule: schedule,
+                style: const TextStyle(
+                    color: Color(0xFFDC2626),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900),
+              ),
               const SizedBox(height: 4),
               Text(caption,
                   style: TextStyle(
@@ -7978,21 +8105,6 @@ class ScheduleCountdownSummary extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _countdownLabel(int days) {
-    if (days < 0) return 'Lewat ${days.abs()} hari';
-    if (days == 0) return 'Hari ini';
-    if (days < 7) return '$days hari lagi';
-    if (days < 30) {
-      final weeks = days ~/ 7;
-      final rest = days % 7;
-      return rest == 0 ? '$weeks minggu lagi' : '$weeks minggu $rest hari lagi';
-    }
-    final months = days ~/ 30;
-    final restWeeks = (days % 30) ~/ 7;
-    if (restWeeks == 0) return '$months bulan lagi';
-    return '$months bulan $restWeeks minggu lagi';
   }
 }
 
