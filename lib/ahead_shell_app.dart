@@ -3430,12 +3430,26 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
                       : Icons.arrow_forward_rounded,
                   onPressed: isLastSlide
                       ? () {
+                          if (rating == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Pilih rating pengalaman belajar dulu sebelum selesai.')));
+                            return;
+                          }
                           setState(() =>
                               aheadStore.completeMaterial(widget.material));
                           ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                   content: Text(
                                       'Materi selesai dan progres disimpan.')));
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const MainShell(initialIndex: 1)),
+                            (_) => false,
+                          );
                         }
                       : () => _slideController.nextPage(
                             duration: const Duration(milliseconds: 240),
