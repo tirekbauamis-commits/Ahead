@@ -7453,8 +7453,13 @@ class UpcomingScheduleCard extends StatelessWidget {
         ],
       ),
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          const Positioned(top: -4, right: -2, child: AnimatedFireCorner()),
+          const Positioned(
+            right: -18,
+            bottom: -24,
+            child: IgnorePointer(child: AnimatedFireCorner(size: 118)),
+          ),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               const IconBox(
@@ -7500,7 +7505,9 @@ class UpcomingScheduleCard extends StatelessWidget {
 }
 
 class AnimatedFireCorner extends StatefulWidget {
-  const AnimatedFireCorner({super.key});
+  const AnimatedFireCorner({super.key, this.size = 72});
+
+  final double size;
 
   @override
   State<AnimatedFireCorner> createState() => _AnimatedFireCornerState();
@@ -7525,20 +7532,54 @@ class _AnimatedFireCornerState extends State<AnimatedFireCorner>
       animation: controller,
       builder: (context, child) {
         final value = controller.value;
+        final size = widget.size;
         return Transform.scale(
-          scale: .92 + value * .12,
-          child: Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: .16 + value * .10),
-            ),
-            child: Icon(
-              Icons.local_fire_department_rounded,
-              color: Color.lerp(
-                  const Color(0xFFFFD166), Colors.white, value * .35),
-              size: 34,
+          scale: .96 + value * .07,
+          child: SizedBox(
+            width: size,
+            height: size,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: size * .88,
+                  height: size * .88,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFFFFD166).withValues(alpha: .42),
+                        const Color(0xFFFF6B2A).withValues(alpha: .22),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+                Transform.translate(
+                  offset: Offset(0, -3 - value * 4),
+                  child: Icon(
+                    Icons.local_fire_department_rounded,
+                    color: const Color(0xFFFFD166).withValues(alpha: .95),
+                    size: size * .68,
+                  ),
+                ),
+                Transform.translate(
+                  offset: Offset(-size * .05, value * 3),
+                  child: Icon(
+                    Icons.local_fire_department_rounded,
+                    color: const Color(0xFFFF7A1A).withValues(alpha: .86),
+                    size: size * .86,
+                  ),
+                ),
+                Transform.translate(
+                  offset: Offset(size * .08, size * .1),
+                  child: Icon(
+                    Icons.local_fire_department_rounded,
+                    color: const Color(0xFF991B1B).withValues(alpha: .68),
+                    size: size * .72,
+                  ),
+                ),
+              ],
             ),
           ),
         );
