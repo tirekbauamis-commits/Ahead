@@ -553,6 +553,223 @@ class AheadStore {
       content:
           'Geografi mempelajari gejala geosfer dengan sudut pandang keruangan, lingkungan, dan kewilayahan. Objek kajiannya mencakup litosfer, atmosfer, hidrosfer, biosfer, dan antroposfer.\n\nKonsep dasar geografi meliputi lokasi, jarak, keterjangkauan, pola, morfologi, aglomerasi, nilai guna, interaksi, diferensiasi area, dan keterkaitan ruang. Prinsip geografi meliputi persebaran, interelasi, deskripsi, dan korologi.\n\nPeta menyajikan informasi lokasi dan karakter wilayah. Penginderaan jauh memperoleh data dari sensor seperti satelit. SIG mengolah, menyimpan, menganalisis, dan menampilkan data spasial. Dalam soal, tentukan dulu fenomenanya, lokasinya, pola persebarannya, lalu hubungan antarwilayahnya.',
     ),
+    const MaterialItem(
+      id: 13,
+      subjectId: 1,
+      title: 'Pelestarian Lingkungan',
+      description:
+          'Konservasi, daya dukung, pencemaran, dan pemulihan ekosistem.',
+      classLevel: 'X',
+      content:
+          'Pelestarian lingkungan bertujuan menjaga keseimbangan antara kebutuhan manusia dan kemampuan alam untuk pulih. Konsep pentingnya meliputi daya dukung, daya tampung, konservasi, pencemaran, dan pemanfaatan berkelanjutan.\n\nPencemaran dapat terjadi di air, udara, dan tanah. Dampaknya tidak hanya merusak makhluk hidup, tetapi juga mengubah rantai makanan, menurunkan kesehatan manusia, dan melemahkan fungsi ekosistem.\n\nUpaya pelestarian dapat dilakukan melalui pengurangan limbah, restorasi habitat, reboisasi, penggunaan energi bersih, dan edukasi masyarakat. Dalam soal, cari hubungan antara aktivitas manusia, kerusakan lingkungan, dan solusi yang paling tepat.',
+    ),
+    const MaterialItem(
+      id: 14,
+      subjectId: 1,
+      title: 'Perubahan Lingkungan dan Global Warming',
+      description: 'Efek rumah kaca, perubahan iklim, dan adaptasi lingkungan.',
+      classLevel: 'X',
+      content:
+          'Pemanasan global terjadi karena peningkatan gas rumah kaca seperti karbon dioksida, metana, dan dinitrogen oksida. Gas ini menahan panas di atmosfer sehingga suhu rata-rata bumi meningkat.\n\nDampaknya meliputi cuaca ekstrem, naiknya permukaan laut, terganggunya habitat, perubahan pola tanam, dan meningkatnya risiko penyakit. Perubahan lingkungan dapat dipicu oleh pembakaran bahan bakar fosil, deforestasi, industri, dan konsumsi berlebihan.\n\nMitigasi dilakukan dengan mengurangi penyebab, misalnya hemat energi dan energi terbarukan. Adaptasi dilakukan dengan menyesuaikan diri terhadap dampak, misalnya sistem peringatan dini dan tata kota tahan banjir.',
+    ),
+    const MaterialItem(
+      id: 15,
+      subjectId: 1,
+      title: 'Klasifikasi Makhluk Hidup',
+      description: 'Ciri makhluk hidup, taksonomi, dan kunci determinasi.',
+      classLevel: 'X',
+      content:
+          'Klasifikasi makhluk hidup membantu ilmuwan mengelompokkan organisme berdasarkan persamaan dan perbedaan ciri. Tingkatan takson dimulai dari kingdom, filum atau divisi, kelas, ordo, famili, genus, sampai spesies.\n\nDasar klasifikasi dapat berupa struktur tubuh, cara memperoleh makanan, habitat, alat gerak, reproduksi, dan hubungan kekerabatan. Nama ilmiah memakai sistem binomial nomenclature, yaitu genus dan spesies.\n\nKunci determinasi digunakan untuk mengenali organisme melalui pilihan ciri yang berpasangan. Saat mengerjakan soal, perhatikan ciri pembeda yang paling spesifik agar tidak salah menentukan kelompok.',
+    ),
+    const MaterialItem(
+      id: 16,
+      subjectId: 2,
+      title: 'Metode Ilmiah Kimia',
+      description:
+          'Observasi, hipotesis, variabel, eksperimen, dan kesimpulan.',
+      classLevel: 'X',
+      content:
+          'Metode ilmiah adalah langkah sistematis untuk menjawab pertanyaan berdasarkan bukti. Tahapannya meliputi observasi, merumuskan masalah, membuat hipotesis, menentukan variabel, melakukan eksperimen, menganalisis data, dan menyusun kesimpulan.\n\nDalam eksperimen kimia, variabel bebas adalah faktor yang diubah, variabel terikat adalah hasil yang diamati, dan variabel kontrol adalah faktor yang dibuat tetap. Kesimpulan harus sesuai data, bukan sekadar dugaan.\n\nKeselamatan kerja penting karena bahan kimia dapat bersifat mudah terbakar, korosif, beracun, atau iritan. Simbol bahaya dan prosedur laboratorium harus dibaca sebelum percobaan.',
+    ),
+    const MaterialItem(
+      id: 17,
+      subjectId: 2,
+      title: 'Hukum Dasar Kimia',
+      description:
+          'Kekekalan massa, perbandingan tetap, dan perhitungan sederhana.',
+      classLevel: 'X',
+      content:
+          'Hukum dasar kimia menjelaskan pola kuantitatif dalam reaksi. Hukum kekekalan massa menyatakan bahwa massa total zat sebelum dan sesudah reaksi tetap sama jika sistem tertutup.\n\nHukum perbandingan tetap menyatakan bahwa suatu senyawa murni selalu memiliki perbandingan massa unsur penyusun yang tetap. Contohnya air selalu tersusun dari hidrogen dan oksigen dengan perbandingan tertentu.\n\nDalam soal, tuliskan data massa yang diketahui, cari hubungan perbandingan, lalu pastikan satuan sama. Kesalahan umum adalah menjumlahkan massa tanpa memperhatikan zat yang bereaksi dan sisa zat.',
+    ),
+    const MaterialItem(
+      id: 18,
+      subjectId: 2,
+      title: 'Tabel Periodik Unsur',
+      description:
+          'Golongan, periode, sifat periodik, logam, nonlogam, dan metaloid.',
+      classLevel: 'X',
+      content:
+          'Tabel periodik menyusun unsur berdasarkan nomor atom dan kemiripan sifat. Baris disebut periode, sedangkan kolom disebut golongan. Unsur segolongan biasanya memiliki elektron valensi yang mirip sehingga sifat kimianya juga mirip.\n\nSifat periodik meliputi jari-jari atom, energi ionisasi, elektronegativitas, dan afinitas elektron. Secara umum, sifat tersebut berubah teratur dari kiri ke kanan dan dari atas ke bawah.\n\nLogam cenderung mengkilap, menghantarkan listrik, dan mudah melepas elektron. Nonlogam cenderung menerima elektron. Metaloid memiliki sifat antara logam dan nonlogam.',
+    ),
+    const MaterialItem(
+      id: 19,
+      subjectId: 3,
+      title: 'Metode Ilmiah Fisika',
+      description: 'Pengamatan, model, eksperimen, data, dan grafik.',
+      classLevel: 'X',
+      content:
+          'Fisika mempelajari gejala alam melalui pengamatan, pengukuran, model, dan eksperimen. Model digunakan untuk menyederhanakan kenyataan sehingga hubungan antarbesaran dapat dianalisis.\n\nData eksperimen dapat ditampilkan dalam tabel atau grafik. Grafik membantu melihat pola, misalnya hubungan linear, berbanding terbalik, atau perubahan yang tidak tetap.\n\nKesimpulan fisika harus didukung data dan satuan yang jelas. Jika hasil percobaan berbeda dari teori, periksa alat ukur, ketelitian, kesalahan paralaks, dan variabel yang belum dikontrol.',
+    ),
+    const MaterialItem(
+      id: 20,
+      subjectId: 3,
+      title: 'Pemanasan Global',
+      description:
+          'Gas rumah kaca, radiasi, dampak suhu bumi, dan solusi energi.',
+      classLevel: 'X',
+      content:
+          'Pemanasan global dalam fisika berkaitan dengan energi radiasi matahari dan kemampuan atmosfer menahan panas. Efek rumah kaca alami diperlukan, tetapi menjadi masalah ketika gas rumah kaca meningkat berlebihan.\n\nEnergi yang masuk dan keluar bumi harus seimbang. Jika panas lebih banyak tertahan, suhu rata-rata meningkat. Dampaknya dapat terlihat pada cuaca ekstrem, pencairan es, dan perubahan ekosistem.\n\nSolusi fisika berkaitan dengan efisiensi energi, teknologi energi terbarukan, transportasi rendah emisi, dan desain bangunan hemat energi. Dalam soal, hubungkan sumber energi dengan perubahan emisi.',
+    ),
+    const MaterialItem(
+      id: 21,
+      subjectId: 3,
+      title: 'Gerak dan Gaya Dasar',
+      description: 'Posisi, perpindahan, kecepatan, percepatan, dan gaya.',
+      classLevel: 'X',
+      content:
+          'Gerak dipahami melalui posisi, jarak, perpindahan, kelajuan, kecepatan, dan percepatan. Jarak adalah panjang lintasan, sedangkan perpindahan adalah perubahan posisi dari titik awal ke titik akhir.\n\nKecepatan memperhatikan arah, sedangkan kelajuan hanya besar nilainya. Percepatan menunjukkan perubahan kecepatan tiap satuan waktu. Gaya dapat mengubah gerak, bentuk, atau arah benda.\n\nSaat mengerjakan soal, gambarkan situasi, tulis besaran yang diketahui, samakan satuan, lalu pilih rumus sesuai jenis gerak. Jangan menukar jarak dengan perpindahan jika soal menyebut arah.',
+    ),
+    const MaterialItem(
+      id: 22,
+      subjectId: 4,
+      title: 'Manusia, Ruang, dan Waktu',
+      description: 'Konsep dasar sejarah sebagai peristiwa yang berkonteks.',
+      classLevel: 'X',
+      content:
+          'Sejarah selalu melibatkan manusia sebagai pelaku, ruang sebagai tempat, dan waktu sebagai urutan. Tanpa ketiga unsur ini, peristiwa sulit dianalisis secara historis.\n\nRuang memengaruhi kehidupan manusia melalui kondisi geografis, sumber daya, jalur perdagangan, dan hubungan dengan wilayah lain. Waktu membantu melihat perubahan, keberlanjutan, perkembangan, dan pengulangan peristiwa.\n\nDalam soal sejarah, jangan hanya menyebut tanggal. Jelaskan siapa pelakunya, di mana terjadi, kapan berlangsung, mengapa terjadi, dan bagaimana dampaknya terhadap masyarakat.',
+    ),
+    const MaterialItem(
+      id: 23,
+      subjectId: 4,
+      title: 'Sumber Sejarah dan Penelitian',
+      description: 'Heuristik, kritik sumber, interpretasi, dan historiografi.',
+      classLevel: 'X',
+      content:
+          'Penelitian sejarah dimulai dari heuristik, yaitu mencari dan mengumpulkan sumber. Sumber dapat berupa tulisan, lisan, benda, visual, atau digital. Setelah itu dilakukan kritik sumber untuk menilai keaslian dan kredibilitasnya.\n\nInterpretasi adalah proses menafsirkan fakta sejarah agar menjadi penjelasan yang masuk akal. Historiografi adalah penulisan sejarah secara runtut berdasarkan hasil penelitian.\n\nBias sumber perlu diperhatikan karena setiap sumber dibuat dari sudut pandang tertentu. Jawaban yang baik membedakan fakta, pendapat, dan tafsir.',
+    ),
+    const MaterialItem(
+      id: 24,
+      subjectId: 4,
+      title: 'Indonesia Masa Awal',
+      description:
+          'Masyarakat awal, migrasi, budaya, dan perkembangan Nusantara.',
+      classLevel: 'X',
+      content:
+          'Perkembangan Indonesia masa awal dapat dipahami melalui kehidupan masyarakat praaksara, migrasi manusia, teknologi sederhana, pola hunian, dan sistem kepercayaan. Bukti sejarahnya berasal dari artefak, fosil, situs, dan tradisi lisan.\n\nMasyarakat awal menyesuaikan diri dengan alam melalui berburu, meramu, bercocok tanam, dan perdagangan sederhana. Perubahan teknologi membawa perubahan cara hidup.\n\nDalam soal, hubungkan bukti sejarah dengan pola kehidupan. Misalnya alat batu dapat menunjukkan aktivitas ekonomi, lingkungan, dan kemampuan teknologi masyarakat pada masa itu.',
+    ),
+    const MaterialItem(
+      id: 25,
+      subjectId: 5,
+      title: 'Tindakan Sosial',
+      description: 'Makna tindakan, tujuan pelaku, dan respons masyarakat.',
+      classLevel: 'X',
+      content:
+          'Tindakan sosial adalah tindakan individu yang mempertimbangkan keberadaan orang lain. Artinya, tindakan tersebut memiliki makna sosial dan dapat memengaruhi atau dipengaruhi oleh respons orang lain.\n\nTindakan sosial dapat berorientasi tujuan, nilai, emosi, atau kebiasaan. Contohnya mengikuti aturan sekolah karena ingin tertib, membantu teman karena nilai solidaritas, atau memberi komentar karena dorongan emosi.\n\nSaat menganalisis kasus, cari pelaku, tujuan tindakan, pihak yang terlibat, norma yang berlaku, dan dampaknya. Jangan menjawab hanya berdasarkan suka atau tidak suka.',
+    ),
+    const MaterialItem(
+      id: 26,
+      subjectId: 5,
+      title: 'Interaksi Sosial',
+      description:
+          'Kontak sosial, komunikasi, kerja sama, konflik, dan akomodasi.',
+      classLevel: 'X',
+      content:
+          'Interaksi sosial terjadi ketika ada kontak sosial dan komunikasi. Kontak dapat langsung atau tidak langsung, sedangkan komunikasi melibatkan pesan, media, penerima, dan pemaknaan.\n\nBentuk interaksi sosial dapat bersifat asosiatif seperti kerja sama, akomodasi, dan asimilasi, atau disosiatif seperti persaingan, kontravensi, dan konflik.\n\nDalam soal, tentukan dulu bentuk interaksinya. Jika hubungan mengarah pada persatuan, biasanya termasuk asosiatif. Jika mengarah pada pertentangan atau persaingan, termasuk disosiatif.',
+    ),
+    const MaterialItem(
+      id: 27,
+      subjectId: 5,
+      title: 'Nilai dan Norma Sosial',
+      description: 'Pedoman perilaku, sanksi, keteraturan, dan penyimpangan.',
+      classLevel: 'X',
+      content:
+          'Nilai sosial adalah sesuatu yang dianggap baik, penting, atau berharga oleh masyarakat. Norma sosial adalah aturan yang mengatur perilaku agar sesuai dengan nilai tersebut.\n\nNorma dapat berupa cara, kebiasaan, tata kelakuan, adat, atau hukum. Setiap norma memiliki sanksi yang berbeda, mulai dari teguran ringan sampai hukuman formal.\n\nPenyimpangan sosial terjadi ketika perilaku tidak sesuai dengan norma. Namun analisis sosiologi perlu melihat faktor penyebab, dampak, dan upaya pengendalian sosial secara objektif.',
+    ),
+    const MaterialItem(
+      id: 28,
+      subjectId: 5,
+      title: 'Sosialisasi dan Pembentukan Identitas',
+      description: 'Agen sosialisasi, peran, status, dan identitas diri.',
+      classLevel: 'X',
+      content:
+          'Sosialisasi adalah proses belajar nilai, norma, peran, dan kebiasaan masyarakat. Agen sosialisasi meliputi keluarga, sekolah, teman sebaya, media massa, dan lingkungan kerja.\n\nIdentitas diri terbentuk melalui interaksi dengan lingkungan. Seseorang belajar menjadi anggota masyarakat melalui peran dan status yang dijalankan dalam kehidupan sehari-hari.\n\nDalam soal, perhatikan agen sosialisasi yang paling berpengaruh. Media sosial, misalnya, dapat membentuk gaya bahasa, pilihan pertemanan, dan cara seseorang menampilkan diri.',
+    ),
+    const MaterialItem(
+      id: 29,
+      subjectId: 6,
+      title: 'Kebutuhan dan Skala Prioritas',
+      description: 'Kebutuhan, keinginan, prioritas, dan pilihan ekonomi.',
+      classLevel: 'X',
+      content:
+          'Kebutuhan adalah sesuatu yang harus dipenuhi agar manusia dapat hidup layak, sedangkan keinginan adalah hasrat yang tidak selalu mendesak. Karena sumber daya terbatas, manusia perlu menyusun skala prioritas.\n\nSkala prioritas membantu menentukan kebutuhan mana yang paling penting, paling mendesak, dan paling bermanfaat. Faktor yang memengaruhi kebutuhan meliputi usia, pendapatan, lingkungan, pendidikan, dan budaya.\n\nDalam soal ekonomi, bedakan kebutuhan primer, sekunder, dan tersier. Jawaban harus menjelaskan alasan pemilihan, bukan hanya menyebut barang yang dipilih.',
+    ),
+    const MaterialItem(
+      id: 30,
+      subjectId: 6,
+      title: 'Biaya Peluang',
+      description: 'Pilihan terbaik yang dikorbankan saat mengambil keputusan.',
+      classLevel: 'X',
+      content:
+          'Biaya peluang adalah nilai dari pilihan terbaik yang harus dikorbankan ketika seseorang memilih satu alternatif. Konsep ini muncul karena manusia tidak bisa memenuhi semua kebutuhan sekaligus.\n\nContohnya siswa memilih mengikuti les matematika daripada bekerja paruh waktu. Biaya peluangnya adalah penghasilan atau pengalaman kerja yang dikorbankan.\n\nSaat menghitung biaya peluang, cari alternatif terbaik yang tidak dipilih. Jangan menjumlahkan semua alternatif yang ditinggalkan, karena biaya peluang hanya pilihan terbaik berikutnya.',
+    ),
+    const MaterialItem(
+      id: 31,
+      subjectId: 6,
+      title: 'Kegiatan Produksi dan Konsumsi',
+      description:
+          'Produsen, konsumen, distribusi, nilai guna, dan faktor produksi.',
+      classLevel: 'X',
+      content:
+          'Produksi adalah kegiatan menghasilkan atau menambah nilai guna barang dan jasa. Faktor produksi meliputi sumber daya alam, tenaga kerja, modal, dan kewirausahaan.\n\nDistribusi menyalurkan barang dari produsen ke konsumen. Konsumsi adalah kegiatan memakai atau menghabiskan nilai guna barang dan jasa untuk memenuhi kebutuhan.\n\nDalam soal, identifikasi pelaku ekonominya dulu: rumah tangga konsumen, produsen, pemerintah, atau masyarakat luar negeri. Lalu tentukan kegiatan ekonomi yang sedang terjadi.',
+    ),
+    const MaterialItem(
+      id: 32,
+      subjectId: 7,
+      title: 'Peta dan Komponen Peta',
+      description:
+          'Skala, simbol, legenda, orientasi, koordinat, dan proyeksi.',
+      classLevel: 'X',
+      content:
+          'Peta adalah gambaran permukaan bumi pada bidang datar dengan skala tertentu. Komponen peta meliputi judul, skala, legenda, simbol, orientasi, garis koordinat, inset, dan sumber peta.\n\nSkala menunjukkan perbandingan jarak di peta dengan jarak sebenarnya. Simbol membantu menyederhanakan objek, sedangkan legenda menjelaskan arti simbol.\n\nDalam soal peta, perhatikan satuan dan skala. Jika menghitung jarak sebenarnya, ubah jarak peta sesuai skala lalu konversi satuannya dengan teliti.',
+    ),
+    const MaterialItem(
+      id: 33,
+      subjectId: 7,
+      title: 'Penginderaan Jauh',
+      description:
+          'Sensor, citra, resolusi, interpretasi, dan pemanfaatan data.',
+      classLevel: 'X',
+      content:
+          'Penginderaan jauh adalah teknik memperoleh informasi objek tanpa kontak langsung, biasanya menggunakan sensor pada satelit atau pesawat. Data yang dihasilkan dapat berupa citra foto atau nonfoto.\n\nInterpretasi citra memperhatikan rona, warna, bentuk, ukuran, tekstur, pola, bayangan, situs, dan asosiasi. Resolusi menentukan detail objek yang dapat diamati.\n\nPenginderaan jauh digunakan untuk pemetaan hutan, perubahan lahan, bencana, cuaca, pertanian, dan tata kota. Dalam soal, cocokkan ciri citra dengan objek yang paling mungkin.',
+    ),
+    const MaterialItem(
+      id: 34,
+      subjectId: 7,
+      title: 'Sistem Informasi Geografis',
+      description: 'Input, pengolahan, analisis, dan penyajian data spasial.',
+      classLevel: 'X',
+      content:
+          'Sistem Informasi Geografis atau SIG adalah sistem untuk mengumpulkan, menyimpan, mengolah, menganalisis, dan menampilkan data spasial. Data spasial menunjukkan lokasi, sedangkan data atribut menjelaskan karakteristik objek.\n\nTahap kerja SIG meliputi input data, manajemen data, analisis, dan output berupa peta, tabel, grafik, atau model. Analisis SIG dapat membantu menentukan lokasi sekolah, jalur evakuasi, atau zona rawan bencana.\n\nDalam soal, cari hubungan antara data lokasi dan tujuan analisis. SIG tidak hanya menggambar peta, tetapi membantu mengambil keputusan berbasis ruang.',
+    ),
+    const MaterialItem(
+      id: 35,
+      subjectId: 7,
+      title: 'Pendekatan Geografi',
+      description: 'Pendekatan keruangan, ekologi, dan kompleks wilayah.',
+      classLevel: 'X',
+      content:
+          'Pendekatan geografi membantu menganalisis fenomena geosfer. Pendekatan keruangan menekankan lokasi, persebaran, pola, jarak, dan interaksi antarwilayah.\n\nPendekatan ekologi melihat hubungan antara manusia dan lingkungan. Pendekatan kompleks wilayah menggabungkan keruangan dan ekologi untuk memahami karakter wilayah secara menyeluruh.\n\nDalam soal, tentukan fokus analisisnya. Jika menanyakan persebaran, gunakan keruangan. Jika menanyakan hubungan manusia-lingkungan, gunakan ekologi. Jika membandingkan wilayah, gunakan kompleks wilayah.',
+    ),
   ];
 
   late final List<QuestionItem> questions = _buildQuestions();
@@ -653,6 +870,89 @@ class AheadStore {
         'peta',
         'penginderaan jauh',
         'SIG'
+      ],
+      13: [
+        'pelestarian',
+        'daya dukung',
+        'pencemaran',
+        'restorasi',
+        'ekosistem'
+      ],
+      14: ['efek rumah kaca', 'iklim', 'mitigasi', 'adaptasi', 'emisi'],
+      15: [
+        'taksonomi',
+        'spesies',
+        'genus',
+        'kunci determinasi',
+        'ciri organisme'
+      ],
+      16: [
+        'observasi',
+        'hipotesis',
+        'variabel',
+        'eksperimen',
+        'keselamatan kerja'
+      ],
+      17: [
+        'kekekalan massa',
+        'perbandingan tetap',
+        'massa zat',
+        'reaksi',
+        'data percobaan'
+      ],
+      18: [
+        'golongan',
+        'periode',
+        'elektron valensi',
+        'sifat periodik',
+        'unsur'
+      ],
+      19: [
+        'model fisika',
+        'grafik',
+        'data',
+        'pengukuran',
+        'kesalahan percobaan'
+      ],
+      20: ['radiasi', 'gas rumah kaca', 'suhu bumi', 'energi', 'efisiensi'],
+      21: ['jarak', 'perpindahan', 'kecepatan', 'percepatan', 'gaya'],
+      22: ['manusia', 'ruang', 'waktu', 'perubahan', 'keberlanjutan'],
+      23: [
+        'heuristik',
+        'kritik sumber',
+        'interpretasi',
+        'historiografi',
+        'bias sumber'
+      ],
+      24: ['praaksara', 'artefak', 'migrasi', 'teknologi', 'pola hunian'],
+      25: ['tindakan sosial', 'makna', 'tujuan', 'nilai', 'respons sosial'],
+      26: ['kontak sosial', 'komunikasi', 'kerja sama', 'konflik', 'akomodasi'],
+      27: ['nilai sosial', 'norma', 'sanksi', 'penyimpangan', 'keteraturan'],
+      28: ['sosialisasi', 'identitas', 'agen sosialisasi', 'peran', 'status'],
+      29: ['kebutuhan', 'keinginan', 'prioritas', 'primer', 'sekunder'],
+      30: [
+        'biaya peluang',
+        'alternatif',
+        'pilihan',
+        'pengorbanan',
+        'keputusan'
+      ],
+      31: [
+        'produksi',
+        'distribusi',
+        'konsumsi',
+        'nilai guna',
+        'faktor produksi'
+      ],
+      32: ['skala', 'legenda', 'simbol', 'koordinat', 'orientasi'],
+      33: ['sensor', 'citra', 'resolusi', 'interpretasi', 'pemanfaatan'],
+      34: ['data spasial', 'atribut', 'analisis SIG', 'overlay', 'output peta'],
+      35: [
+        'keruangan',
+        'ekologi',
+        'kompleks wilayah',
+        'persebaran',
+        'interaksi'
       ],
     };
     return data[materialId] ??
