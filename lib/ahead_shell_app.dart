@@ -179,6 +179,20 @@ class MaterialItem {
   final String classLevel;
 }
 
+class MaterialSlide {
+  const MaterialSlide({
+    required this.title,
+    required this.body,
+    required this.icon,
+    required this.color,
+  });
+
+  final String title;
+  final String body;
+  final IconData icon;
+  final Color color;
+}
+
 class QuestionItem {
   const QuestionItem({
     required this.id,
@@ -1534,6 +1548,105 @@ class AheadStore {
     return 'Dipilih dari progres materi terendah di jurusan ${user.major}, supaya persiapanmu lebih rata.';
   }
 
+  List<MaterialSlide> materialSlides(MaterialItem material) {
+    final subject = subjectById(material.subjectId);
+    final concepts = _conceptsForMaterial(material.id);
+    final paragraphs = material.content
+        .split(RegExp(r'\n\s*\n'))
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
+    String paragraph(int index) => paragraphs.isEmpty
+        ? material.description
+        : paragraphs[index % paragraphs.length];
+    String concept(int index) => concepts[index % concepts.length];
+    const colors = [
+      Color(0xFFEAF1FF),
+      Color(0xFFFFF2D7),
+      Color(0xFFEAFBF4),
+      Color(0xFFFFECE7),
+      Color(0xFFF0ECFF),
+      Color(0xFFEAF8FF),
+      Color(0xFFFFF6E8),
+      Color(0xFFEFF7E9),
+      Color(0xFFFFEEF5),
+      Color(0xFFEFF2F7),
+    ];
+
+    return [
+      MaterialSlide(
+        title: 'Gambaran besar ${material.title}',
+        body:
+            '${paragraph(0)}\n\nPada slide awal ini, pahami dulu posisi materi ${material.title} dalam ${subject.name}. Tujuannya bukan menghafal semua kalimat, tetapi menangkap masalah utama, istilah penting, dan alasan materi ini perlu dipelajari siswa kelas ${material.classLevel}.',
+        icon: Icons.explore_outlined,
+        color: colors[0],
+      ),
+      MaterialSlide(
+        title: 'Konsep inti yang wajib dikuasai',
+        body:
+            'Konsep utama pada materi ini adalah ${concept(0)}, ${concept(1)}, dan ${concept(2)}. Ketiganya saling berhubungan karena membantu kamu menjelaskan ${material.description.toLowerCase()} dengan bahasa yang runtut.\n\nSaat membaca soal, tandai kata kunci lebih dulu. Kalau kata kuncinya dekat dengan ${concept(0)}, jawaban biasanya menuntut definisi, contoh, atau hubungan sebab-akibat.',
+        icon: Icons.lightbulb_outline_rounded,
+        color: colors[1],
+      ),
+      MaterialSlide(
+        title: 'Pendalaman materi',
+        body:
+            '${paragraph(1)}\n\nBagian pendalaman ini penting karena banyak soal tidak bertanya definisi langsung. Soal sering memberi kasus, lalu meminta kamu memilih konsep yang paling tepat. Hubungkan kasus dengan ${concept(3)} dan jelaskan dampaknya secara logis.',
+        icon: Icons.manage_search_rounded,
+        color: colors[2],
+      ),
+      MaterialSlide(
+        title: 'Contoh penerapan di kehidupan nyata',
+        body:
+            'Contoh penerapan ${material.title} dapat ditemukan dari situasi sehari-hari, berita, data sekolah, lingkungan sekitar, atau fenomena masyarakat. Pada ${subject.name}, contoh yang baik selalu punya konteks, bukti, dan kesimpulan.\n\nCoba gunakan pola: peristiwa yang diamati, konsep yang cocok, alasan hubungan, lalu simpulan singkat.',
+        icon: Icons.public_rounded,
+        color: colors[3],
+      ),
+      MaterialSlide(
+        title: 'Langkah memahami soal',
+        body:
+            'Gunakan empat langkah ini: baca pertanyaan sampai tuntas, garis bawahi kata kunci, hubungkan dengan ${concept(0)} atau ${concept(1)}, lalu pilih jawaban yang paling sesuai dengan konteks.\n\nKalau ada dua pilihan yang terlihat benar, cari pilihan yang paling lengkap menjelaskan sebab, proses, dan akibat. Hindari jawaban yang terlalu mutlak seperti selalu, pasti, atau tidak pernah jika konteksnya tidak mendukung.',
+        icon: Icons.checklist_rtl_rounded,
+        color: colors[4],
+      ),
+      MaterialSlide(
+        title: 'Kesalahan umum yang harus dihindari',
+        body:
+            'Kesalahan yang sering terjadi adalah hanya menghafal istilah tanpa memahami perbedaannya. Misalnya ${concept(2)} sering tertukar dengan ${concept(3)} karena keduanya muncul dalam topik yang sama.\n\nCara menghindarinya: tulis definisi pendek, buat satu contoh, lalu jelaskan apa yang membedakan konsep tersebut dari konsep lain.',
+        icon: Icons.warning_amber_rounded,
+        color: colors[5],
+      ),
+      MaterialSlide(
+        title: 'Mini cek pemahaman',
+        body:
+            'Jawab cepat dalam hati: apa arti ${concept(0)}? Kapan ${concept(1)} digunakan? Bagaimana ${concept(2)} memengaruhi ${material.description.toLowerCase()}?\n\nKalau tiga pertanyaan ini belum lancar, ulangi slide sebelumnya. Kalau sudah lancar, lanjutkan ke bagian rangkuman dan aplikasi soal.',
+        icon: Icons.quiz_outlined,
+        color: colors[6],
+      ),
+      MaterialSlide(
+        title: 'Aplikasi ke soal pilihan ganda dan essay',
+        body:
+            'Untuk pilihan ganda, cari opsi yang paling sesuai dengan kata kunci soal. Untuk essay, jawab dengan struktur: konsep, penjelasan, contoh, dan kesimpulan.\n\nContoh kerangka essay: "${concept(0)} adalah ..., hal ini terlihat pada ..., sehingga dapat disimpulkan bahwa ...". Kerangka seperti ini membuat jawaban lebih rapi dan mudah dinilai.',
+        icon: Icons.edit_note_rounded,
+        color: colors[7],
+      ),
+      MaterialSlide(
+        title: 'Rangkuman cepat',
+        body:
+            'Inti materi ${material.title}: ${material.description}. Kata kunci yang perlu kamu ingat adalah ${concept(0)}, ${concept(1)}, ${concept(2)}, ${concept(3)}, dan ${concept(4)}.\n\nJika diminta menjelaskan, jangan berhenti pada definisi. Tambahkan hubungan antar konsep dan contoh yang relevan agar jawabanmu terlihat matang.',
+        icon: Icons.summarize_outlined,
+        color: colors[8],
+      ),
+      MaterialSlide(
+        title: 'Penutup belajar',
+        body:
+            'Sebelum menandai selesai, pastikan kamu bisa menjelaskan ${material.title} dengan kalimat sendiri selama satu menit. Jika masih bingung, ulangi slide yang membahas konsep inti dan kesalahan umum.\n\nSetelah selesai, beri rating pengalaman belajar supaya AHEAD bisa mencatat kualitas belajarmu dan membantu kamu memilih materi berikutnya.',
+        icon: Icons.flag_circle_outlined,
+        color: colors[9],
+      ),
+    ];
+  }
+
   void openMaterial(MaterialItem item) {
     final user = currentUser;
     if (user == null) return;
@@ -2799,10 +2912,19 @@ class MaterialDetailPage extends StatefulWidget {
 }
 
 class _MaterialDetailPageState extends State<MaterialDetailPage> {
+  late final PageController _slideController = PageController();
+  int _slideIndex = 0;
+
   @override
   void initState() {
     super.initState();
     aheadStore.openMaterial(widget.material);
+  }
+
+  @override
+  void dispose() {
+    _slideController.dispose();
+    super.dispose();
   }
 
   @override
@@ -2811,6 +2933,8 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     final user = aheadStore.currentUser!;
     final progress = user.materialProgress[widget.material.id] ?? 0;
     final saved = user.savedMaterialIds.contains(widget.material.id);
+    final slides = aheadStore.materialSlides(widget.material);
+    final isLastSlide = _slideIndex == slides.length - 1;
     return DetailScaffold(
       title: widget.material.title,
       child: AheadScroll(
@@ -2848,34 +2972,67 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
             ),
           ),
           const SizedBox(height: 16),
-          AheadCard(
-            child: Text(widget.material.content,
-                style: TextStyle(
-                    fontSize: 16,
-                    height: 1.55,
-                    color: Theme.of(context).colorScheme.onSurface)),
+          MaterialSlideDeck(
+            slides: slides,
+            controller: _slideController,
+            currentIndex: _slideIndex,
+            onChanged: (value) => setState(() => _slideIndex = value),
           ),
           const SizedBox(height: 16),
-          AheadButton(
-            label: 'Tandai Selesai',
-            icon: Icons.check_rounded,
-            onPressed: () {
-              setState(() => aheadStore.completeMaterial(widget.material));
-              ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Progres materi disimpan.')));
-            },
+          Row(
+            children: [
+              Expanded(
+                child: AheadOutlineButton(
+                  label: 'Sebelumnya',
+                  icon: Icons.arrow_back_rounded,
+                  onPressed: _slideIndex == 0
+                      ? () {}
+                      : () => _slideController.previousPage(
+                            duration: const Duration(milliseconds: 240),
+                            curve: Curves.easeOut,
+                          ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: AheadButton(
+                  label: isLastSlide ? 'Slide Terakhir' : 'Selanjutnya',
+                  icon: isLastSlide
+                      ? Icons.flag_circle_outlined
+                      : Icons.arrow_forward_rounded,
+                  onPressed: isLastSlide
+                      ? () {}
+                      : () => _slideController.nextPage(
+                            duration: const Duration(milliseconds: 240),
+                            curve: Curves.easeOut,
+                          ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          AheadOutlineButton(
-              label: 'Latihan Topik Ini',
-              icon: Icons.play_arrow_rounded,
-              onPressed: () => startPractice(
-                    context,
-                    widget.material.title,
-                    subject.id,
-                    materialId: widget.material.id,
-                    minutes: 20,
-                  )),
+          if (isLastSlide) ...[
+            const SizedBox(height: 16),
+            AheadButton(
+              label: 'Selesai',
+              icon: Icons.check_rounded,
+              onPressed: () {
+                setState(() => aheadStore.completeMaterial(widget.material));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Materi selesai dan progres disimpan.')));
+              },
+            ),
+            const SizedBox(height: 10),
+            AheadOutlineButton(
+              label: 'Kembali ke Menu Materi',
+              icon: Icons.menu_book_outlined,
+              onPressed: () => Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const MainShell(initialIndex: 1)),
+                (_) => false,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -6819,6 +6976,121 @@ class InsightRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class MaterialSlideDeck extends StatelessWidget {
+  const MaterialSlideDeck({
+    super.key,
+    required this.slides,
+    required this.controller,
+    required this.currentIndex,
+    required this.onChanged,
+  });
+
+  final List<MaterialSlide> slides;
+  final PageController controller;
+  final int currentIndex;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('Materi Belajar',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Theme.of(context).colorScheme.onSurface)),
+            const Spacer(),
+            AheadPill('Slide ${currentIndex + 1}/${slides.length}',
+                dark ? const Color(0xFF334155) : AheadColors.softBlue,
+                textColor: dark ? Colors.white : AheadColors.blue),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 420,
+          child: PageView.builder(
+            controller: controller,
+            itemCount: slides.length,
+            onPageChanged: onChanged,
+            itemBuilder: (context, index) {
+              final slide = slides[index];
+              final color = dark
+                  ? Color.lerp(slide.color, const Color(0xFF111827), .72)!
+                  : slide.color;
+              return Padding(
+                padding: const EdgeInsets.only(right: 2),
+                child: AheadCard(
+                  color: color,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            IconBox(icon: slide.icon, color: Colors.white),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                slide.title,
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  height: 1.18,
+                                  fontWeight: FontWeight.w900,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        Text(
+                          slide.body,
+                          style: TextStyle(
+                            fontSize: 16,
+                            height: 1.58,
+                            color: dark
+                                ? const Color(0xFFE5E7EB)
+                                : AheadColors.text,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: List.generate(slides.length, (index) {
+            final active = index == currentIndex;
+            return Expanded(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                height: 5,
+                margin:
+                    EdgeInsets.only(right: index == slides.length - 1 ? 0 : 5),
+                decoration: BoxDecoration(
+                  color: active
+                      ? AheadColors.blue
+                      : (dark ? const Color(0xFF334155) : AheadColors.line),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
     );
   }
 }
