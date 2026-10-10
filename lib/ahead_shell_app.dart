@@ -2698,14 +2698,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               label: loading ? 'Menyimpan...' : 'Daftar',
               icon: Icons.arrow_forward_rounded,
               onPressed: loading ? () {} : () => submit()),
-          const SizedBox(height: 14),
-          GoogleAuthButton(
-            label: 'Daftar dengan Google',
-            major: major,
-            onError: (message) => setState(() => error = message),
-            onSuccess: () => Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (_) => const MainShell())),
-          ),
           const SizedBox(height: 20),
           Center(
             child: TextButton(
