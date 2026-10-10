@@ -3381,12 +3381,19 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
               const SizedBox(width: 10),
               Expanded(
                 child: AheadButton(
-                  label: isLastSlide ? 'Slide Terakhir' : 'Selanjutnya',
+                  label: isLastSlide ? 'Selesai' : 'Selanjutnya',
                   icon: isLastSlide
-                      ? Icons.flag_circle_outlined
+                      ? Icons.check_rounded
                       : Icons.arrow_forward_rounded,
                   onPressed: isLastSlide
-                      ? () {}
+                      ? () {
+                          setState(() =>
+                              aheadStore.completeMaterial(widget.material));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'Materi selesai dan progres disimpan.')));
+                        }
                       : () => _slideController.nextPage(
                             duration: const Duration(milliseconds: 240),
                             curve: Curves.easeOut,
@@ -3408,16 +3415,6 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
               },
             ),
             const SizedBox(height: 16),
-            AheadButton(
-              label: 'Selesai',
-              icon: Icons.check_rounded,
-              onPressed: () {
-                setState(() => aheadStore.completeMaterial(widget.material));
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Materi selesai dan progres disimpan.')));
-              },
-            ),
-            const SizedBox(height: 10),
             AheadOutlineButton(
               label: 'Kembali ke Menu Materi',
               icon: Icons.menu_book_outlined,
