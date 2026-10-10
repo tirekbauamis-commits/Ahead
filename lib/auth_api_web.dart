@@ -10,14 +10,31 @@ class AuthApi {
 
   static const baseUrl = 'http://127.0.0.1:8000';
 
-  Future<Map<String, dynamic>> post(
-      String path, Map<String, Object?> body) async {
+  Future<Map<String, dynamic>> get(String path, {String? token}) async {
+    return _request(path, method: 'GET', token: token);
+  }
+
+  Future<Map<String, dynamic>> post(String path, Map<String, Object?> body,
+      {String? token}) async {
+    return _request(path, method: 'POST', body: body, token: token);
+  }
+
+  Future<Map<String, dynamic>> _request(
+    String path, {
+    required String method,
+    Map<String, Object?>? body,
+    String? token,
+  }) async {
     try {
+      final headers = <String, String>{'Content-Type': 'application/json'};
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
       final request = await html.HttpRequest.request(
         '$baseUrl$path',
-        method: 'POST',
-        requestHeaders: {'Content-Type': 'application/json'},
-        sendData: jsonEncode(body),
+        method: method,
+        requestHeaders: headers,
+        sendData: body == null ? null : jsonEncode(body),
       );
       final response = _decode(request.responseText);
       if (request.status == null ||

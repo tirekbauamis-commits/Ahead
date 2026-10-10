@@ -372,6 +372,7 @@ class AheadStore {
   final _storage = createAccountStorage();
   final _api = createAuthApi();
   AheadUser? currentUser;
+  String? _authToken;
   int _nextUserId = 1;
   String? _resetEmail;
   String? _resetCode;
@@ -899,12 +900,13 @@ class AheadStore {
 
   ExamScheduleItem _scheduleFromJson(Map<String, dynamic> json) =>
       ExamScheduleItem(
-        id: _asString(
-            json['id'], 'schedule-${DateTime.now().microsecondsSinceEpoch}'),
+        id: _asString(json['id'] ?? json['client_id'],
+            'schedule-${DateTime.now().microsecondsSinceEpoch}'),
         title: _asString(json['title'], 'Jadwal Ujian'),
-        subjectId: _asInt(json['subjectId'], subjectsForCurrentUser().first.id),
-        type: _asString(json['type'], 'UTS'),
-        date: _asDate(json['date']),
+        subjectId: _asInt(json['subjectId'] ?? json['subject_id'],
+            subjectsForCurrentUser().first.id),
+        type: _asString(json['type'] ?? json['exam_type'], 'UTS'),
+        date: _asDate(json['date'] ?? json['exam_date']),
         notes: _asString(json['notes']),
       );
 
@@ -1044,6 +1046,55 @@ class AheadStore {
     return user;
   }
 
+  Future<void> _syncSchedulesWithApi() async {
+    final token = _authToken;
+    final user = currentUser;
+    if (token == null || token.isEmpty || user == null) return;
+    try {
+      final response = await _api.get('/schedules', token: token);
+      final remote = _asList(response['data'])
+          .whereType<Map>()
+          .map((item) => _scheduleFromJson(_asMap(item)))
+          .toList();
+      final remoteIds = remote.map((item) => item.id).toSet();
+      for (final item in remote) {
+        _upsertLocalSchedule(item);
+      }
+      final localSnapshot = List<ExamScheduleItem>.from(user.examSchedules);
+      for (final item in localSnapshot) {
+        if (!remoteIds.contains(item.id)) {
+          await _pushScheduleToApi(item);
+        }
+      }
+      _queueSave();
+    } catch (_) {
+      // Jadwal tetap tersimpan lokal saat API belum siap.
+    }
+  }
+
+  void _upsertLocalSchedule(ExamScheduleItem item) {
+    final user = currentUser;
+    if (user == null) return;
+    final index = user.examSchedules.indexWhere((entry) => entry.id == item.id);
+    if (index >= 0) {
+      user.examSchedules[index] = item;
+    } else {
+      user.examSchedules.add(item);
+    }
+  }
+
+  Future<void> _pushScheduleToApi(ExamScheduleItem item) async {
+    final token = _authToken;
+    if (token == null || token.isEmpty) return;
+    await _api.post('/schedules', _scheduleToJson(item), token: token);
+  }
+
+  Future<void> _deleteScheduleFromApi(ExamScheduleItem item) async {
+    final token = _authToken;
+    if (token == null || token.isEmpty) return;
+    await _api.post('/schedules/delete', {'id': item.id}, token: token);
+  }
+
   String _bestDisplayName({
     required String currentName,
     required String incomingName,
@@ -1109,6 +1160,7 @@ class AheadStore {
     if (name != null && name.trim().isNotEmpty) user.name = name.trim();
     user.classLevel = classLevel;
     user.major = major == 'IPS' ? 'IPS' : 'IPA';
+    _authToken = null;
     currentUser = user;
     user.history.add('Login mode offline pada ${_shortDate(DateTime.now())}');
     _queueSave();
@@ -1142,15 +1194,23 @@ class AheadStore {
     if (password != confirmPassword) return 'Konfirmasi password belum sama.';
     if (classLevel == 'Kelas') return 'Kelas wajib dipilih.';
     try {
-      await _api.post('/auth/register', {
+      final response = await _api.post('/auth/register', {
         'name': trimmedName,
         'email': normalizedEmail,
         'password': password,
         'class': classLevel,
         'major': major,
       });
+      final token = _asString(response['token']);
+      if (token.isNotEmpty) _authToken = token;
+      final apiUser = _asMap(response['user']);
       final local = _users.where((user) => user.email == normalizedEmail);
-      if (local.isEmpty) {
+      if (apiUser.isNotEmpty) {
+        final user = _upsertApiUser(apiUser, password: password);
+        currentUser = user;
+        user.history.add('Daftar akun pada ${_shortDate(DateTime.now())}');
+        await _syncSchedulesWithApi();
+      } else if (local.isEmpty) {
         final user = AheadUser(
           id: _nextUserId++,
           name: trimmedName,
@@ -1198,13 +1258,18 @@ class AheadStore {
         'password': password,
       });
       final user = _upsertApiUser(_asMap(response['user']), password: password);
+      _authToken = _asString(response['token']);
       currentUser = user;
       user.history.add('Login pada ${_shortDate(DateTime.now())}');
+      await _syncSchedulesWithApi();
       _queueSave();
       return null;
     } catch (error) {
       final localResult = login(email, password);
-      if (localResult == null) return null;
+      if (localResult == null) {
+        _authToken = null;
+        return null;
+      }
       if (_isBackendOfflineError(error)) {
         if (!localResult.contains('Akun tidak ditemukan')) return localResult;
         if (!normalizedEmail.contains('@')) return 'Email tidak valid.';
@@ -1228,8 +1293,10 @@ class AheadStore {
       if (major != null) body['major'] = major;
       final response = await _api.post('/auth/google', body);
       final user = _upsertApiUser(_asMap(response['user']));
+      _authToken = _asString(response['token']);
       currentUser = user;
       user.history.add('Login Google pada ${_shortDate(DateTime.now())}');
+      await _syncSchedulesWithApi();
       _queueSave();
       return null;
     } catch (error) {
@@ -1274,6 +1341,7 @@ class AheadStore {
     user.classLevel = 'Kelas X';
     user.major = major == 'IPS' ? 'IPS' : user.major;
     if (photoUrl != null && photoUrl.isNotEmpty) user.photoUrl = photoUrl;
+    _authToken = null;
     currentUser = user;
     user.history.add('Login Google pada ${_shortDate(DateTime.now())}');
     _queueSave();
@@ -1380,6 +1448,7 @@ class AheadStore {
   }
 
   void logout() {
+    _authToken = null;
     currentUser = null;
     _queueSave();
   }
@@ -1482,6 +1551,7 @@ class AheadStore {
       '${item.title} untuk ${subjectById(item.subjectId).name} ${item.dayLabel}.',
       DateTime.now(),
     ));
+    unawaited(_pushScheduleToApi(item));
     _queueSave();
   }
 
@@ -1490,6 +1560,7 @@ class AheadStore {
     if (user == null) return;
     user.examSchedules.removeWhere((entry) => entry.id == item.id);
     user.history.add('Menghapus jadwal ${item.title}');
+    unawaited(_deleteScheduleFromApi(item));
     _queueSave();
   }
 

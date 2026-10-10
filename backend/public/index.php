@@ -106,6 +106,35 @@ function current_user(): array {
     return public_user($user);
 }
 
+function ensure_exam_schedules_table(): void {
+    db()->exec('CREATE TABLE IF NOT EXISTS exam_schedules (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id BIGINT UNSIGNED NOT NULL,
+        client_id VARCHAR(120) NOT NULL,
+        title VARCHAR(180) NOT NULL,
+        subject_id BIGINT UNSIGNED NOT NULL,
+        exam_type VARCHAR(60) NOT NULL,
+        exam_date DATE NOT NULL,
+        notes TEXT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uniq_user_client_schedule (user_id, client_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+    )');
+}
+
+function public_schedule(array $row): array {
+    return [
+        'id' => $row['client_id'],
+        'title' => $row['title'],
+        'subjectId' => (int)$row['subject_id'],
+        'type' => $row['exam_type'],
+        'date' => $row['exam_date'],
+        'notes' => $row['notes'] ?? '',
+    ];
+}
+
 function ai_local_tutor_reply(string $message): string {
     $q = function_exists('mb_strtolower') ? mb_strtolower($message, 'UTF-8') : strtolower($message);
     $has = function (array $keywords) use ($q): bool {
@@ -171,7 +200,15 @@ try {
             trim((string)$data['class']),
             $data['major'] === 'IPS' ? 'IPS' : 'IPA',
         ]);
-        respond(['message' => 'Akun berhasil dibuat. Silakan login manual.'], 201);
+        $userId = (int)db()->lastInsertId();
+        $stmt = db()->prepare('SELECT * FROM users WHERE id = ? LIMIT 1');
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch();
+        respond([
+            'message' => 'Akun berhasil dibuat.',
+            'token' => issue_token($userId),
+            'user' => public_user($user),
+        ], 201);
     }
 
     if ($method === 'POST' && $path === '/auth/login') {
@@ -290,6 +327,55 @@ try {
 
     if ($method === 'GET' && $path === '/exams') {
         respond(['data' => db()->query('SELECT * FROM exams ORDER BY id')->fetchAll()]);
+    }
+
+    if ($method === 'GET' && $path === '/schedules') {
+        $user = current_user();
+        ensure_exam_schedules_table();
+        $stmt = db()->prepare('SELECT * FROM exam_schedules WHERE user_id = ? ORDER BY exam_date ASC, id ASC');
+        $stmt->execute([(int)$user['id']]);
+        respond(['data' => array_map('public_schedule', $stmt->fetchAll())]);
+    }
+
+    if ($method === 'POST' && $path === '/schedules') {
+        $user = current_user();
+        ensure_exam_schedules_table();
+        $data = json_input();
+        require_fields($data, ['id', 'title', 'subjectId', 'type', 'date']);
+        $date = date_create((string)$data['date']);
+        if (!$date) {
+            respond(['error' => 'Tanggal jadwal tidak valid.'], 422);
+        }
+        $stmt = db()->prepare('INSERT INTO exam_schedules (user_id, client_id, title, subject_id, exam_type, exam_date, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                title = VALUES(title),
+                subject_id = VALUES(subject_id),
+                exam_type = VALUES(exam_type),
+                exam_date = VALUES(exam_date),
+                notes = VALUES(notes)');
+        $stmt->execute([
+            (int)$user['id'],
+            trim((string)$data['id']),
+            trim((string)$data['title']),
+            (int)$data['subjectId'],
+            trim((string)$data['type']),
+            $date->format('Y-m-d'),
+            trim((string)($data['notes'] ?? '')),
+        ]);
+        $select = db()->prepare('SELECT * FROM exam_schedules WHERE user_id = ? AND client_id = ? LIMIT 1');
+        $select->execute([(int)$user['id'], trim((string)$data['id'])]);
+        respond(['data' => public_schedule($select->fetch())]);
+    }
+
+    if ($method === 'POST' && $path === '/schedules/delete') {
+        $user = current_user();
+        ensure_exam_schedules_table();
+        $data = json_input();
+        require_fields($data, ['id']);
+        $stmt = db()->prepare('DELETE FROM exam_schedules WHERE user_id = ? AND client_id = ?');
+        $stmt->execute([(int)$user['id'], trim((string)$data['id'])]);
+        respond(['message' => 'Jadwal berhasil dihapus.']);
     }
 
     if ($method === 'GET' && $path === '/dashboard') {
