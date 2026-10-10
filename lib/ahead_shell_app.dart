@@ -106,6 +106,7 @@ class AheadUser {
   String? photoUrl;
 
   final Map<int, int> materialProgress = {};
+  final Map<int, int> materialRatings = {};
   final Set<int> savedMaterialIds = {};
   final List<PracticeResult> practiceResults = [];
   final List<ExamResult> examResults = [];
@@ -776,6 +777,8 @@ class AheadStore {
         'photoUrl': user.photoUrl,
         'materialProgress':
             user.materialProgress.map((key, value) => MapEntry('$key', value)),
+        'materialRatings':
+            user.materialRatings.map((key, value) => MapEntry('$key', value)),
         'savedMaterialIds': user.savedMaterialIds.toList(),
         'practiceResults': user.practiceResults.map(_practiceToJson).toList(),
         'examResults': user.examResults.map(_examToJson).toList(),
@@ -799,6 +802,7 @@ class AheadStore {
       photoUrl: _nullableString(json['photoUrl']),
     );
     user.materialProgress.addAll(_intIntMap(json['materialProgress']));
+    user.materialRatings.addAll(_intIntMap(json['materialRatings']));
     user.savedMaterialIds.addAll(_asList(json['savedMaterialIds'])
         .map((item) => _asInt(item))
         .where((item) => item > 0));
@@ -1661,6 +1665,15 @@ class AheadStore {
     if (user == null) return;
     user.materialProgress[item.id] = 100;
     user.history.add('Menyelesaikan materi ${item.title}');
+    _queueSave();
+  }
+
+  void rateMaterial(MaterialItem item, int rating) {
+    final user = currentUser;
+    if (user == null) return;
+    user.materialRatings[item.id] = rating.clamp(1, 10);
+    user.history
+        .add('Memberi rating materi ${item.title} ${rating.clamp(1, 10)}/10');
     _queueSave();
   }
 
@@ -2935,6 +2948,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     final saved = user.savedMaterialIds.contains(widget.material.id);
     final slides = aheadStore.materialSlides(widget.material);
     final isLastSlide = _slideIndex == slides.length - 1;
+    final rating = user.materialRatings[widget.material.id];
     return DetailScaffold(
       title: widget.material.title,
       child: AheadScroll(
@@ -3011,6 +3025,17 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
             ],
           ),
           if (isLastSlide) ...[
+            const SizedBox(height: 16),
+            RatingExperienceCard(
+              title: 'Rating Pengalaman Belajar',
+              message: 'Beri nilai 1-10 untuk pengalaman belajar materi ini.',
+              rating: rating,
+              onChanged: (value) {
+                setState(() => aheadStore.rateMaterial(widget.material, value));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('Rating belajar tersimpan: $value/10.')));
+              },
+            ),
             const SizedBox(height: 16),
             AheadButton(
               label: 'Selesai',
@@ -7100,10 +7125,14 @@ class RatingExperienceCard extends StatelessWidget {
     super.key,
     required this.rating,
     required this.onChanged,
+    this.title = 'Rating Pengalaman Latihan',
+    this.message = 'Beri nilai 1-10 agar evaluasi latihan ikut tersimpan.',
   });
 
   final int? rating;
   final ValueChanged<int> onChanged;
+  final String title;
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -7111,11 +7140,11 @@ class RatingExperienceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Rating Pengalaman Latihan',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+          Text(title,
+              style:
+                  const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
-          const Text('Beri nilai 1-10 agar evaluasi latihan ikut tersimpan.',
-              style: TextStyle(color: AheadColors.muted)),
+          Text(message, style: const TextStyle(color: AheadColors.muted)),
           const SizedBox(height: 12),
           Wrap(
             spacing: 4,
