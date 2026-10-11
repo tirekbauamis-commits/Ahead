@@ -1004,7 +1004,7 @@ class AheadStore {
           'Ujian terpadu Biologi, Kimia, dan Fisika untuk mengukur kesiapan akhir semester.',
       type: 'UAS',
       durationMinutes: 90,
-      totalQuestions: 50,
+      totalQuestions: 20,
       subjectId: 1,
     ),
     const ExamItem(
@@ -1013,7 +1013,7 @@ class AheadStore {
       description: 'Keanekaragaman hayati, lingkungan, dan virus.',
       type: 'UTS',
       durationMinutes: 45,
-      totalQuestions: 25,
+      totalQuestions: 20,
       subjectId: 1,
     ),
     const ExamItem(
@@ -1032,7 +1032,7 @@ class AheadStore {
           'Ujian terpadu Sejarah, Sosiologi, Ekonomi, dan Geografi kelas X.',
       type: 'UAS',
       durationMinutes: 90,
-      totalQuestions: 50,
+      totalQuestions: 20,
       subjectId: 4,
     ),
     const ExamItem(
@@ -1041,7 +1041,7 @@ class AheadStore {
       description: 'Kelangkaan, kebutuhan, pasar, dan lembaga keuangan.',
       type: 'UTS',
       durationMinutes: 45,
-      totalQuestions: 25,
+      totalQuestions: 20,
       subjectId: 6,
     ),
     const ExamItem(
@@ -1050,6 +1050,105 @@ class AheadStore {
       description: 'Konsep geografi, peta, penginderaan jauh, dan SIG.',
       type: 'Sumatif',
       durationMinutes: 30,
+      totalQuestions: 20,
+      subjectId: 7,
+    ),
+    const ExamItem(
+      id: 7,
+      title: 'Simulasi UTS Kimia Kelas X',
+      description: 'Kimia hijau, metode ilmiah, struktur atom, dan dasar reaksi.',
+      type: 'UTS',
+      durationMinutes: 45,
+      totalQuestions: 20,
+      subjectId: 2,
+    ),
+    const ExamItem(
+      id: 8,
+      title: 'Simulasi UAS Kimia Kelas X',
+      description: 'Evaluasi akhir kimia kelas X dari konsep dasar sampai hukum kimia.',
+      type: 'UAS',
+      durationMinutes: 90,
+      totalQuestions: 20,
+      subjectId: 2,
+    ),
+    const ExamItem(
+      id: 9,
+      title: 'Simulasi UTS Fisika Kelas X',
+      description: 'Pengukuran, metode ilmiah, energi, gerak, dan pemanasan global.',
+      type: 'UTS',
+      durationMinutes: 45,
+      totalQuestions: 20,
+      subjectId: 3,
+    ),
+    const ExamItem(
+      id: 10,
+      title: 'Simulasi UAS Fisika Kelas X',
+      description: 'Ujian akhir fisika untuk mengukur kesiapan materi kelas X.',
+      type: 'UAS',
+      durationMinutes: 90,
+      totalQuestions: 20,
+      subjectId: 3,
+    ),
+    const ExamItem(
+      id: 11,
+      title: 'Simulasi UTS Sejarah Kelas X',
+      description: 'Pengantar sejarah, manusia, ruang, waktu, dan sumber sejarah.',
+      type: 'UTS',
+      durationMinutes: 45,
+      totalQuestions: 20,
+      subjectId: 4,
+    ),
+    const ExamItem(
+      id: 12,
+      title: 'Simulasi UAS Sejarah Kelas X',
+      description: 'Ujian akhir sejarah dari konsep dasar sampai Indonesia awal.',
+      type: 'UAS',
+      durationMinutes: 90,
+      totalQuestions: 20,
+      subjectId: 4,
+    ),
+    const ExamItem(
+      id: 13,
+      title: 'Simulasi UTS Sosiologi Kelas X',
+      description: 'Gejala sosial, identitas, tindakan sosial, dan interaksi sosial.',
+      type: 'UTS',
+      durationMinutes: 45,
+      totalQuestions: 20,
+      subjectId: 5,
+    ),
+    const ExamItem(
+      id: 14,
+      title: 'Simulasi UAS Sosiologi Kelas X',
+      description: 'Evaluasi akhir sosiologi kelas X dengan kasus sosial masyarakat.',
+      type: 'UAS',
+      durationMinutes: 90,
+      totalQuestions: 20,
+      subjectId: 5,
+    ),
+    const ExamItem(
+      id: 15,
+      title: 'Simulasi UAS Ekonomi Kelas X',
+      description: 'Ujian akhir ekonomi tentang kebutuhan, pasar, dan lembaga keuangan.',
+      type: 'UAS',
+      durationMinutes: 90,
+      totalQuestions: 20,
+      subjectId: 6,
+    ),
+    const ExamItem(
+      id: 16,
+      title: 'Simulasi UTS Geografi Kelas X',
+      description: 'Konsep geografi, pendekatan, peta, dan penginderaan jauh.',
+      type: 'UTS',
+      durationMinutes: 45,
+      totalQuestions: 20,
+      subjectId: 7,
+    ),
+    const ExamItem(
+      id: 17,
+      title: 'Simulasi UAS Geografi Kelas X',
+      description: 'Ujian akhir geografi dari peta sampai analisis SIG.',
+      type: 'UAS',
+      durationMinutes: 90,
       totalQuestions: 20,
       subjectId: 7,
     ),
@@ -1203,6 +1302,12 @@ class AheadStore {
 
   Map<String, Object?> _examToJson(ExamResult result) => {
         'examId': result.exam.id,
+        'examTitle': result.exam.title,
+        'examDescription': result.exam.description,
+        'examType': result.exam.type,
+        'examDurationMinutes': result.exam.durationMinutes,
+        'examTotalQuestions': result.exam.totalQuestions,
+        'subjectId': result.exam.subjectId,
         'score': result.score,
         'correct': result.correct,
         'wrong': result.wrong,
@@ -1214,7 +1319,17 @@ class AheadStore {
   ExamResult _examFromJson(Map<String, dynamic> json) {
     final examId = _asInt(json['examId'], exams.first.id);
     final exam = exams.firstWhere((item) => item.id == examId,
-        orElse: () => exams.first);
+        orElse: () => ExamItem(
+              id: examId,
+              title: _asString(json['examTitle'], 'Ujian Terjadwal'),
+              description: _asString(json['examDescription'],
+                  'Ujian yang dibuat dari jadwal siswa.'),
+              type: _asString(json['examType'], 'UTS'),
+              durationMinutes: _asInt(json['examDurationMinutes'],
+                  _asInt(json['durationMinutes'], 45)),
+              totalQuestions: _asInt(json['examTotalQuestions'], 20),
+              subjectId: _asInt(json['subjectId'], subjects.first.id),
+            ));
     return ExamResult(
       exam: exam,
       score: _asInt(json['score']),
@@ -1853,9 +1968,45 @@ class AheadStore {
     return questions.where((item) => allowed.contains(item.subjectId)).toList();
   }
 
+  int _stableExamId(String value) {
+    var hash = 23;
+    for (final code in value.codeUnits) {
+      hash = ((hash * 37) + code) & 0x3FFFFFFF;
+    }
+    return 100000 + hash;
+  }
+
+  bool _isScheduleExamType(String type) {
+    final upper = type.toUpperCase();
+    return upper.contains('UTS') || upper.contains('UAS');
+  }
+
+  ExamItem examForSchedule(ExamScheduleItem schedule) {
+    final subject = subjectById(schedule.subjectId);
+    final upper = schedule.type.toUpperCase();
+    final duration = upper.contains('UAS') ? 90 : 45;
+    return ExamItem(
+      id: _stableExamId('schedule:${schedule.id}'),
+      title: '${schedule.type} ${subject.name} - ${schedule.title}',
+      description:
+          'Ujian dibuat dari jadwal ${schedule.title}. Materi mengikuti ${subject.name} dan target ${schedule.dayLabel}.',
+      type: schedule.type,
+      durationMinutes: duration,
+      totalQuestions: 20,
+      subjectId: schedule.subjectId,
+    );
+  }
+
   List<ExamItem> examsForCurrentUser() {
     final allowed = subjectsForCurrentUser().map((item) => item.id).toSet();
-    return exams.where((item) => allowed.contains(item.subjectId)).toList();
+    final scheduled = schedulesForCurrentUser()
+        .where((item) => _isScheduleExamType(item.type))
+        .map(examForSchedule);
+    final defaults = exams.where((item) => allowed.contains(item.subjectId));
+    final seen = <int>{};
+    return [...scheduled, ...defaults]
+        .where((item) => seen.add(item.id))
+        .toList();
   }
 
   List<ExamScheduleItem> schedulesForCurrentUser() {
