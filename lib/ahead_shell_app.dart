@@ -2348,6 +2348,32 @@ class AheadStore {
     _queueSave();
   }
 
+  bool isMaterialSaved(MaterialItem item) =>
+      currentUser?.savedMaterialIds.contains(item.id) ?? false;
+
+  bool isSubjectSaved(SubjectItem subject) {
+    final user = currentUser;
+    if (user == null) return false;
+    final ids = materialsForSubject(subject.id).map((item) => item.id).toList();
+    return ids.isNotEmpty &&
+        ids.every((id) => user.savedMaterialIds.contains(id));
+  }
+
+  void toggleSavedSubject(SubjectItem subject) {
+    final user = currentUser;
+    if (user == null) return;
+    final ids = materialsForSubject(subject.id).map((item) => item.id).toList();
+    if (ids.isEmpty) return;
+    if (ids.every((id) => user.savedMaterialIds.contains(id))) {
+      user.savedMaterialIds.removeAll(ids);
+      user.history.add('Menghapus simpanan materi ${subject.name}');
+    } else {
+      user.savedMaterialIds.addAll(ids);
+      user.history.add('Menyimpan semua materi ${subject.name}');
+    }
+    _queueSave();
+  }
+
   PracticeResult savePractice(
       String title,
       int subjectId,
@@ -3616,7 +3642,6 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     final subject = aheadStore.subjectById(widget.material.subjectId);
     final user = aheadStore.currentUser!;
     final progress = user.materialProgress[widget.material.id] ?? 0;
-    final saved = user.savedMaterialIds.contains(widget.material.id);
     final slides = aheadStore.materialSlides(widget.material);
     final isLastSlide = _slideIndex == slides.length - 1;
     final rating = user.materialRatings[widget.material.id];
@@ -3624,44 +3649,13 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
       title: widget.material.title,
       child: AheadScroll(
         children: [
-          AheadCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    IconBox(icon: subject.icon),
-                    const SizedBox(width: 12),
-                    Expanded(
-                        child: Text(subject.name,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w900, fontSize: 18))),
-                    IconButton(
-                      onPressed: () => setState(
-                          () => aheadStore.toggleSaved(widget.material)),
-                      icon: Icon(
-                          saved
-                              ? Icons.bookmark_rounded
-                              : Icons.bookmark_border_rounded,
-                          color: AheadColors.blue),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Text(widget.material.description,
-                    style:
-                        const TextStyle(color: AheadColors.muted, height: 1.5)),
-                const SizedBox(height: 18),
-                AheadProgress(value: progress / 100),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
           MaterialSlideDeck(
             slides: slides,
             controller: _slideController,
             currentIndex: _slideIndex,
             onChanged: (value) => setState(() => _slideIndex = value),
+            subject: subject,
+            progress: progress,
           ),
           const SizedBox(height: 16),
           Row(
@@ -6399,25 +6393,32 @@ class SmallSubjectCard extends StatelessWidget {
   }
 }
 
-class SubjectDetailPage extends StatelessWidget {
+class SubjectDetailPage extends StatefulWidget {
   const SubjectDetailPage({super.key, required this.subject});
 
   final SubjectItem subject;
 
   @override
+  State<SubjectDetailPage> createState() => _SubjectDetailPageState();
+}
+
+class _SubjectDetailPageState extends State<SubjectDetailPage> {
+
+  @override
   Widget build(BuildContext context) {
-    final materials = aheadStore.materialsForSubject(subject.id);
+    final materials = aheadStore.materialsForSubject(widget.subject.id);
     return DetailScaffold(
-      title: subject.name,
+      title: widget.subject.name,
       child: AheadScroll(
         children: [
           AheadCard(
-              child: Text(subject.description,
+              child: Text(widget.subject.description,
                   style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface,
                       height: 1.45))),
           const SizedBox(height: 16),
-          ...materials.map((item) => MaterialTile(material: item)),
+          ...materials.map((item) => MaterialTile(
+              material: item, onSavedChanged: () => setState(() {}))),
           if (materials.isEmpty)
             const EmptyCard(
                 icon: Icons.menu_book_outlined,
@@ -6439,6 +6440,7 @@ class SubjectListCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = aheadStore.currentUser!;
     final subjectMaterials = aheadStore.materialsForSubject(subject.id);
+    final saved = aheadStore.isSubjectSaved(subject);
     final progress = subjectMaterials.isEmpty
         ? 0
         : (subjectMaterials
@@ -6478,8 +6480,24 @@ class SubjectListCard extends StatelessWidget {
                                 color: AheadColors.muted, fontSize: 12)),
                       ]),
                 ),
-                const Icon(Icons.bookmark_border_rounded,
-                    color: AheadColors.muted),
+                IconButton(
+                  tooltip: saved
+                      ? 'Hapus simpanan materi ${subject.name}'
+                      : 'Simpan semua materi ${subject.name}',
+                  onPressed: () {
+                    aheadStore.toggleSavedSubject(subject);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(saved
+                            ? 'Simpanan ${subject.name} dihapus.'
+                            : 'Semua materi ${subject.name} disimpan.')));
+                  },
+                  icon: Icon(
+                    saved
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_border_rounded,
+                    color: saved ? AheadColors.blue : AheadColors.muted,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 14),
@@ -6500,13 +6518,15 @@ class SubjectListCard extends StatelessWidget {
 }
 
 class MaterialTile extends StatelessWidget {
-  const MaterialTile({super.key, required this.material});
+  const MaterialTile({super.key, required this.material, this.onSavedChanged});
 
   final MaterialItem material;
+  final VoidCallback? onSavedChanged;
 
   @override
   Widget build(BuildContext context) {
     final progress = aheadStore.currentUser!.materialProgress[material.id] ?? 0;
+    final saved = aheadStore.isMaterialSaved(material);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -6530,6 +6550,23 @@ class MaterialTile extends StatelessWidget {
               Text('$progress%',
                   style: const TextStyle(
                       color: AheadColors.blue, fontWeight: FontWeight.w900)),
+              IconButton(
+                tooltip: saved ? 'Hapus simpanan' : 'Simpan materi',
+                onPressed: () {
+                  aheadStore.toggleSaved(material);
+                  onSavedChanged?.call();
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(saved
+                          ? 'Materi dihapus dari simpanan.'
+                          : 'Materi disimpan.')));
+                },
+                icon: Icon(
+                  saved
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_border_rounded,
+                  color: saved ? AheadColors.blue : AheadColors.muted,
+                ),
+              ),
             ],
           ),
         ),
@@ -7934,12 +7971,16 @@ class MaterialSlideDeck extends StatelessWidget {
     required this.controller,
     required this.currentIndex,
     required this.onChanged,
+    required this.subject,
+    required this.progress,
   });
 
   final List<MaterialSlide> slides;
   final PageController controller;
   final int currentIndex;
   final ValueChanged<int> onChanged;
+  final SubjectItem subject;
+  final int progress;
 
   @override
   Widget build(BuildContext context) {
@@ -7958,6 +7999,27 @@ class MaterialSlideDeck extends StatelessWidget {
             AheadPill('Slide ${currentIndex + 1}/${slides.length}',
                 dark ? const Color(0xFF334155) : AheadColors.softBlue,
                 textColor: dark ? Colors.white : AheadColors.blue),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            IconBox(icon: subject.icon, size: 40),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(subject.name,
+                      style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: Theme.of(context).colorScheme.onSurface)),
+                  Text('Progres materi $progress%',
+                      style: const TextStyle(
+                          color: AheadColors.muted, fontSize: 12)),
+                ],
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 12),
