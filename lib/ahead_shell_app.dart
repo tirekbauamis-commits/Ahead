@@ -816,16 +816,80 @@ class AheadStore {
     final items = <QuestionItem>[];
     for (final material in materials) {
       final concepts = _conceptsForMaterial(material.id);
+      final subject = subjectById(material.subjectId);
       for (var i = 0; i < 20; i++) {
         final concept = concepts[i % concepts.length];
-        final correct =
-            '$concept berkaitan langsung dengan ${material.description.toLowerCase()}';
-        final distractors = [
-          '$concept tidak perlu dipahami pada materi kelas 10.',
-          '$concept hanya membahas hafalan tanpa hubungan dengan topik.',
-          '$concept berarti semua data dan bukti boleh diabaikan.',
-          '$concept selalu sama untuk semua mata pelajaran tanpa konteks.',
-        ];
+        final variant = i % 5;
+        late final String question;
+        late final String correct;
+        late final List<String> distractors;
+        late final String explanation;
+        if (variant == 0) {
+          question =
+              'Pada materi ${material.title}, makna $concept yang paling tepat adalah...';
+          correct =
+              '$concept menjadi bagian penting untuk memahami ${material.description.toLowerCase()}';
+          distractors = [
+            '$concept tidak perlu dipahami pada materi kelas 10.',
+            '$concept hanya membahas hafalan tanpa hubungan dengan topik.',
+            '$concept berarti semua data dan bukti boleh diabaikan.',
+            '$concept selalu sama untuk semua mata pelajaran tanpa konteks.',
+          ];
+          explanation =
+              '$concept adalah kata kunci pada ${material.title}. Hubungkan istilah ini dengan konteks utama materi, bukan sekadar dihafal.';
+        } else if (variant == 1) {
+          question =
+              'Jika muncul kasus tentang ${material.description.toLowerCase()}, penggunaan $concept paling tepat untuk...';
+          correct =
+              'Menganalisis hubungan sebab-akibat sesuai konteks ${subject.name}.';
+          distractors = [
+            'Menghapus semua data yang tidak sesuai dugaan awal.',
+            'Menjawab dengan definisi acak tanpa melihat kasus.',
+            'Menganggap semua pilihan benar karena topiknya sama.',
+            'Menghindari bukti karena soal hanya perlu ditebak.',
+          ];
+          explanation =
+              'Soal kasus menuntut alasan. Gunakan $concept untuk membaca hubungan peristiwa, data, dan kesimpulan pada ${subject.name}.';
+        } else if (variant == 2) {
+          question =
+              'Pernyataan yang paling sesuai dengan $concept dalam ${material.title} adalah...';
+          correct =
+              '$concept dapat dijelaskan melalui contoh, bukti, dan dampaknya pada topik yang dipelajari.';
+          distractors = [
+            '$concept selalu berdiri sendiri dan tidak punya contoh.',
+            '$concept hanya benar jika tidak ada hubungan dengan materi lain.',
+            '$concept cukup disebutkan tanpa alasan atau bukti.',
+            '$concept tidak dapat digunakan untuk membaca soal kontekstual.',
+          ];
+          explanation =
+              'Pernyataan yang benar harus memuat konsep, contoh, dan hubungan dengan topik ${material.title}.';
+        } else if (variant == 3) {
+          question =
+              'Langkah belajar paling tepat agar $concept mudah dipakai saat ujian adalah...';
+          correct =
+              'Membuat ringkasan definisi, contoh, dan ciri pembeda $concept.';
+          distractors = [
+            'Menghafal pilihan jawaban tanpa memahami alasan.',
+            'Melewati materi karena $concept tidak pernah keluar di ujian.',
+            'Menyamakan $concept dengan semua istilah lain.',
+            'Menjawab cepat tanpa membaca kata kunci soal.',
+          ];
+          explanation =
+              'Ringkasan yang baik memuat definisi singkat, contoh, dan ciri pembeda supaya $concept tidak tertukar dengan istilah lain.';
+        } else {
+          question =
+              'Kesimpulan paling akurat tentang hubungan $concept dan ${material.title} adalah...';
+          correct =
+              '$concept membantu menjelaskan inti ${material.title} secara runtut dan berbasis alasan.';
+          distractors = [
+            '$concept membuat pembahasan materi menjadi tidak relevan.',
+            '$concept hanya dipakai untuk menghafal istilah asing.',
+            '$concept menghilangkan kebutuhan membaca soal dengan teliti.',
+            '$concept selalu menghasilkan jawaban yang sama pada semua mapel.',
+          ];
+          explanation =
+              'Kesimpulan harus menghubungkan $concept dengan inti materi. Jawaban yang terlalu mutlak biasanya tidak tepat.';
+        }
         final correctIndex = i % 5;
         final options = List<String>.from(distractors);
         options.insert(correctIndex, correct);
@@ -833,12 +897,10 @@ class AheadStore {
           id: id++,
           subjectId: material.subjectId,
           materialId: material.id,
-          question:
-              'Pada materi ${material.title}, pernyataan paling tepat tentang $concept adalah...',
+          question: question,
           options: options,
           correctIndex: correctIndex,
-          explanation:
-              '$concept menjadi kata kunci pada ${material.title}. Pahami kaitannya dengan materi utama: ${material.description}',
+          explanation: explanation,
           difficulty: i < 7 ? 'Dasar' : (i < 14 ? 'Menengah' : 'Lanjutan'),
         ));
       }
@@ -1966,6 +2028,42 @@ class AheadStore {
   List<QuestionItem> questionsForCurrentUser() {
     final allowed = subjectsForCurrentUser().map((item) => item.id).toSet();
     return questions.where((item) => allowed.contains(item.subjectId)).toList();
+  }
+
+  List<QuestionItem> examQuestionsFor(ExamItem exam) {
+    final subjectQuestions = questionsForSubject(exam.subjectId);
+    final pool =
+        subjectQuestions.isEmpty ? questionsForCurrentUser() : subjectQuestions;
+    if (pool.isEmpty) return [];
+    final target = min(20, exam.totalQuestions);
+    final selected = <QuestionItem>[];
+    final used = <int>{};
+    final materialIds =
+        materialsForSubject(exam.subjectId).map((item) => item.id).toList();
+    final perMaterial = max(1, (target / max(1, materialIds.length)).ceil());
+
+    for (final materialId in materialIds) {
+      final materialQuestions =
+          pool.where((item) => item.materialId == materialId).toList();
+      if (materialQuestions.isEmpty) continue;
+      final offset = (exam.id + materialId + selected.length) %
+          materialQuestions.length;
+      for (var i = 0;
+          i < perMaterial && selected.length < target;
+          i++) {
+        final question =
+            materialQuestions[(offset + i) % materialQuestions.length];
+        if (used.add(question.id)) selected.add(question);
+      }
+    }
+
+    var cursor = exam.id % pool.length;
+    while (selected.length < target && used.length < pool.length) {
+      final question = pool[cursor % pool.length];
+      if (used.add(question.id)) selected.add(question);
+      cursor++;
+    }
+    return selected;
   }
 
   int _stableExamId(String value) {
@@ -4156,11 +4254,7 @@ class ExamQuestionPage extends StatefulWidget {
 }
 
 class _ExamQuestionPageState extends State<ExamQuestionPage> {
-  late final questions = aheadStore
-          .questionsForSubject(widget.exam.subjectId)
-          .isEmpty
-      ? aheadStore.questionsForCurrentUser().take(20).toList()
-      : aheadStore.questionsForSubject(widget.exam.subjectId).take(20).toList();
+  late final questions = aheadStore.examQuestionsFor(widget.exam);
   final answers = <int, int>{};
   int index = 0;
   late int remaining = widget.exam.durationMinutes * 60;
