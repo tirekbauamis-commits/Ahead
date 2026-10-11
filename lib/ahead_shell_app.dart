@@ -8086,7 +8086,7 @@ class MaterialSlideDeck extends StatelessWidget {
         const SizedBox(height: 10),
         Row(
           children: [
-            IconBox(icon: subject.icon, size: 40),
+            IconBox(icon: subject.icon),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
