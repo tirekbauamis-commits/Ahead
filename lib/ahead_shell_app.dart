@@ -186,12 +186,16 @@ class MaterialSlide {
     required this.body,
     required this.icon,
     required this.color,
+    this.imageUrl,
+    this.imageCaption,
   });
 
   final String title;
   final String body;
   final IconData icon;
   final Color color;
+  final String? imageUrl;
+  final String? imageCaption;
 }
 
 class QuestionItem {
@@ -2224,11 +2228,10 @@ class AheadStore {
         ? material.description
         : paragraphs[index % paragraphs.length];
     String concept(int index) => concepts[index % concepts.length];
-    final foundation = _curriculumFoundationFor(material, subject);
-    final sourceNote = _officialSourceNoteFor(subject);
     final inquiryGuide = _inquiryGuideFor(subject);
     final contextualCase = _contextualCaseFor(material, subject);
     final practiceGuide = _practiceGuideFor(subject);
+    final titles = _directSlideTitles(material, subject, concepts);
     const colors = [
       Color(0xFFEAF1FF),
       Color(0xFFFFF2D7),
@@ -2244,119 +2247,103 @@ class AheadStore {
       Color(0xFFFFF1EA),
     ];
 
+    final bodies = [
+      '${paragraph(0)}\n\n${material.title} dipelajari dari pengertian dasarnya terlebih dahulu. Kamu perlu mengetahui apa yang sedang dibahas, objek apa yang diamati, dan istilah apa yang menjadi pusat materi. Pada bagian ini, fokuskan perhatian pada ${concept(0)} karena konsep tersebut menjadi pintu masuk untuk memahami ${material.description.toLowerCase()}.\n\nDalam buku dan sumber belajar resmi, materi seperti ini biasanya tidak berdiri sendiri. Ada contoh, gambar, aktivitas, dan pertanyaan pemantik. Bacalah materi dengan urutan: pengertian, contoh, proses, dampak, lalu kesimpulan. Dengan cara itu, isi materi terasa utuh dan tidak sekadar definisi pendek.',
+      '${_cap(concept(0))} menjadi kata kunci pertama. Konsep ini menjelaskan dasar dari ${material.title} dan membantu kamu membedakan topik ini dari materi lain di ${subject.name}. Jika kamu belum paham ${concept(0)}, biasanya bagian lanjutan seperti ${concept(1)} dan ${concept(2)} akan terasa membingungkan.\n\nCara memahaminya: buat definisi pendek dengan kalimat sendiri, tulis satu contoh yang mudah ditemukan, lalu catat apa ciri pembeda konsep tersebut. Misalnya, saat membaca kasus atau gambar, tanyakan: bagian mana yang menunjukkan ${concept(0)}, apa buktinya, dan apa akibatnya terhadap topik yang sedang dipelajari.',
+      '${_cap(concept(1))} dan ${concept(2)} saling berkaitan dalam ${material.title}. ${paragraph(1)}\n\nHubungan antar konsep perlu dibaca seperti alur. Ada sebab, ada proses, lalu ada akibat. Jangan hanya menghafal istilah satu per satu. Tuliskan hubungan sederhana: ${concept(1)} memengaruhi ${concept(2)}, kemudian keduanya membantu menjelaskan ${concept(3)}. Jika hubungan ini sudah masuk akal, soal cerita akan lebih mudah dijawab.',
+      '${_cap(concept(3))} sering muncul ketika soal meminta alasan, ciri, atau dampak. Pada materi ${material.title}, konsep ini dapat dipakai untuk menjelaskan mengapa suatu peristiwa terjadi dan bagaimana peristiwa itu memengaruhi bagian lain.\n\nPerhatikan juga ${concept(4)}. Dalam banyak soal, ${concept(4)} menjadi bagian akhir dari pembahasan karena berhubungan dengan kesimpulan, solusi, atau penerapan. Latih diri dengan membuat tabel kecil berisi istilah, pengertian, contoh, dan ciri pembeda. Tabel seperti ini membuat materi panjang lebih mudah diingat.',
+      '$contextualCase\n\nContoh nyata membuat materi lebih hidup. Pilih satu contoh yang dekat dengan kehidupan siswa, lalu hubungkan dengan ${concept(0)}, ${concept(1)}, dan ${concept(2)}. Contoh yang kuat harus punya konteks yang jelas, bukti yang bisa ditunjukkan, dan alasan yang nyambung dengan materi.\n\nJika contohmu berasal dari lingkungan sekitar, tulis apa yang diamati, siapa atau apa yang terlibat, perubahan apa yang terjadi, lalu konsep mana yang paling tepat untuk menjelaskannya.',
+      '$inquiryGuide\n\nUntuk ${material.title}, bukti dapat berupa gambar, tabel, grafik, teks sumber, peta, hasil pengamatan, hasil percobaan, atau kasus kehidupan sehari-hari. Bukti dipakai agar jawaban tidak hanya berupa pendapat.\n\nGunakan pola berpikir ini: amati data, tandai kata kunci, hubungkan dengan konsep, lalu buat simpulan. Jika data tidak cocok dengan dugaan awal, ubah simpulanmu. Jawaban yang baik mengikuti bukti, bukan memaksa bukti mengikuti jawaban.',
+      'Pada ${subject.name}, materi ${material.title} akan lebih kuat jika kamu bisa menjelaskan prosesnya. Proses berarti urutan kejadian atau hubungan yang membuat suatu konsep bekerja. Mulailah dari ${concept(0)}, lanjutkan ke ${concept(1)}, lalu lihat bagaimana ${concept(2)} dan ${concept(3)} muncul dalam pembahasan.\n\nBuat alur pendek di catatan: awal masalah, konsep yang terlibat, proses utama, dampak, dan kesimpulan. Alur ini berguna untuk soal essay karena jawaban tidak melompat-lompat. Untuk pilihan ganda, alur membantu menyingkirkan opsi yang kelihatannya benar tetapi tidak sesuai urutan.',
+      'Di SIBI/Katalog Buku Kemendikdasmen, materi pelajaran biasanya disusun dari pemantik, uraian konsep, aktivitas, dan refleksi. Saat mempelajari ${material.title}, cocokkan catatan AHEAD dengan buku resmi: apakah definisi ${concept(0)} sudah sama, apakah contoh ${concept(1)} sudah lengkap, dan apakah ada gambar atau aktivitas yang bisa memperjelas materi.\n\nJangan berhenti di ringkasan. Baca juga ilustrasi, tabel, peta konsep, atau kegiatan mandiri pada buku. Bagian seperti itu sering membantu memahami konsep yang sulit karena memperlihatkan materi dalam bentuk visual atau aktivitas.',
+      '$practiceGuide\n\nUntuk pilihan ganda, baca pertanyaan sampai akhir, garis bawahi kata kunci, lalu cocokkan dengan konsep. Jika pilihan jawaban menyebut ${concept(0)} tetapi alasannya tidak sesuai, pilihan itu belum tentu benar. Untuk essay, gunakan struktur: pengertian, hubungan konsep, contoh, dan kesimpulan.\n\nLatihan mandiri: buat satu soal tentang ${material.title}, lalu jawab sendiri. Setelah itu cek apakah jawabanmu sudah menyebut konsep, bukti, dan contoh.',
+      'Konsep yang sering tertukar dalam materi ini adalah ${concept(2)} dan ${concept(3)}. Keduanya bisa muncul dalam topik yang sama, tetapi fungsi penjelasannya berbeda. ${_cap(concept(2))} biasanya dipakai untuk membaca bagian tertentu dari materi, sedangkan ${concept(3)} sering dipakai saat menjelaskan alasan atau dampak.\n\nKesalahan lain adalah menjawab terlalu umum, tidak memberi contoh, atau memakai istilah tanpa menjelaskan maknanya. Untuk menghindarinya, selalu tambahkan satu kalimat alasan setelah menyebut istilah.',
+      'Rangkuman ${material.title}: ${material.description}. Kata kunci yang perlu kamu kuasai adalah ${concept(0)}, ${concept(1)}, ${concept(2)}, ${concept(3)}, dan ${concept(4)}. Kelima kata ini bukan daftar hafalan, tetapi jalur untuk menjelaskan materi secara runtut.\n\nRangkuman yang baik memuat pengertian, proses, contoh, dampak, dan kesimpulan. Coba jelaskan materi ini selama satu menit tanpa melihat catatan. Jika masih berhenti terlalu lama, ulangi bagian konsep yang paling sulit.',
+      'Sebelum menyelesaikan materi, pastikan kamu bisa menjawab empat hal: apa pengertian ${concept(0)}, bagaimana hubungan ${concept(1)} dengan ${material.title}, contoh apa yang paling mudah diingat, dan kesalahan apa yang harus dihindari.\n\nSetelah itu, tulis refleksi pendek: bagian mana yang sudah paham, bagian mana yang masih sulit, dan sumber resmi apa yang perlu dibuka lagi. Jika tersedia video atau artikel dari Ruang Murid, gunakan sebagai penguat supaya materi tidak hanya dibaca, tetapi juga dilihat melalui contoh visual.',
+    ];
+    const icons = [
+      Icons.menu_book_outlined,
+      Icons.lightbulb_outline_rounded,
+      Icons.account_tree_outlined,
+      Icons.hub_outlined,
+      Icons.public_rounded,
+      Icons.dataset_outlined,
+      Icons.timeline_rounded,
+      Icons.chrome_reader_mode_outlined,
+      Icons.quiz_outlined,
+      Icons.compare_arrows_rounded,
+      Icons.summarize_outlined,
+      Icons.flag_circle_outlined,
+    ];
+
+    return List.generate(titles.length, (index) {
+      return MaterialSlide(
+        title: titles[index],
+        body: bodies[index],
+        icon: icons[index],
+        color: colors[index],
+        imageUrl: _officialImageFor(subject, index),
+        imageCaption: _officialImageCaption(subject, index),
+      );
+    });
+  }
+
+  List<String> _directSlideTitles(
+      MaterialItem material, SubjectItem subject, List<String> concepts) {
+    String c(int index) => _cap(concepts[index % concepts.length]);
     return [
-      MaterialSlide(
-        title: 'Subbab 1 - Arah CP/Fase E',
-        body:
-            '$foundation\n\nMateri ${material.title} dipelajari agar siswa kelas ${material.classLevel} tidak hanya menghafal istilah, tetapi dapat menjelaskan ${material.description.toLowerCase()} secara runtut. Fokus belajarnya adalah memahami konteks, menguasai kata kunci, membaca bukti, lalu menyusun kesimpulan yang masuk akal.\n\n$sourceNote',
-        icon: Icons.explore_outlined,
-        color: colors[0],
-      ),
-      MaterialSlide(
-        title: 'Subbab 2 - Peta Konsep Materi',
-        body:
-            '${paragraph(0)}\n\nPeta konsep ${material.title} dimulai dari ${concept(0)}, lalu berkembang ke ${concept(1)}, ${concept(2)}, ${concept(3)}, dan ${concept(4)}. Urutan ini penting karena satu konsep biasanya menjadi dasar untuk membaca konsep berikutnya. Jika peta konsepnya jelas, soal pilihan ganda dan essay akan lebih mudah dipilah.\n\nCara belajar yang disarankan: tulis judul materi di tengah buku catatan, cabangkan lima kata kunci di atas, lalu beri satu contoh nyata pada setiap cabang.',
-        icon: Icons.lightbulb_outline_rounded,
-        color: colors[1],
-      ),
-      MaterialSlide(
-        title: 'Subbab 3 - Istilah Kunci',
-        body:
-            'Istilah pertama adalah ${concept(0)}. Pahami istilah ini sebagai pintu masuk materi, karena hampir semua pembahasan ${material.title} akan kembali ke konsep tersebut. Istilah kedua adalah ${concept(1)}, yaitu bagian yang membantu kamu melihat proses atau hubungan antarbagian.\n\nIstilah ketiga adalah ${concept(2)}, yang sering muncul dalam soal kasus. Istilah keempat adalah ${concept(3)}, biasanya dipakai untuk menjelaskan dampak atau alasan. Istilah kelima adalah ${concept(4)}, yang dapat digunakan sebagai penutup jawaban saat kamu diminta memberi solusi, kesimpulan, atau contoh.\n\nJangan menghafal istilah secara terpisah. Buat satu kalimat penghubung seperti: ${concept(0)} berkaitan dengan ${concept(1)}, lalu terlihat melalui ${concept(2)} dan berdampak pada ${concept(3)}.',
-        icon: Icons.manage_search_rounded,
-        color: colors[2],
-      ),
-      MaterialSlide(
-        title: 'Subbab 4 - Penjelasan Konsep Utama',
-        body:
-            '${paragraph(1)}\n\nPada tahap ini, baca materi seperti sedang menjawab pertanyaan "mengapa". Mengapa konsep ini terjadi? Mengapa contoh tertentu cocok? Mengapa pilihan jawaban lain kurang tepat? Pertanyaan seperti ini melatih penalaran dan sesuai dengan pembelajaran fase E yang menekankan pemahaman, proses berpikir, serta penerapan.\n\nJika materi terasa panjang, pecah menjadi tiga bagian: pengertian, proses, dan dampak. Setelah itu buat contoh singkat dari kehidupan sekitar agar konsep tidak berhenti sebagai definisi.',
-        icon: Icons.public_rounded,
-        color: colors[3],
-      ),
-      MaterialSlide(
-        title: 'Subbab 5 - Contoh Kontekstual',
-        body:
-            '$contextualCase\n\nSaat membuat contoh, pastikan ada tiga unsur: situasi yang diamati, konsep yang digunakan, dan alasan hubungan antara keduanya. Contoh yang baik tidak harus rumit. Yang penting, contoh tersebut bisa menunjukkan bahwa kamu benar-benar memahami ${material.title}.\n\nLatihan kecil: ambil satu berita, lingkungan sekolah, kegiatan rumah, atau fenomena masyarakat. Tentukan apakah fenomena itu berhubungan dengan ${concept(0)} atau ${concept(1)}, lalu tulis alasan dalam dua kalimat.',
-        icon: Icons.checklist_rtl_rounded,
-        color: colors[4],
-      ),
-      MaterialSlide(
-        title: 'Subbab 6 - Data, Bukti, dan Penalaran',
-        body:
-            '$inquiryGuide\n\nDalam materi ${material.title}, bukti dapat berupa data pengamatan, tabel, grafik, teks sumber, gambar, peta, kutipan, hasil percobaan, atau contoh kasus. Bukti membantu jawabanmu lebih kuat karena tidak hanya berisi pendapat.\n\nPola berpikir yang dipakai: amati data, temukan kata kunci, hubungkan dengan konsep, lalu buat simpulan. Jika data tidak mendukung kesimpulan, jangan memaksakan jawaban. Ubah kesimpulan agar sesuai dengan bukti.',
-        icon: Icons.warning_amber_rounded,
-        color: colors[5],
-      ),
-      MaterialSlide(
-        title: 'Subbab 7 - Keterampilan Proses',
-        body:
-            'Keterampilan proses membuat belajar lebih aktif. Untuk ${subject.name}, keterampilan ini dapat berupa mengamati, bertanya, mengelompokkan informasi, membandingkan data, membuat penjelasan, dan mengomunikasikan hasil belajar.\n\nPada ${material.title}, latih dirimu dengan tiga tugas kecil. Pertama, tulis satu pertanyaan yang muncul dari materi. Kedua, cari satu bukti yang bisa menjawab pertanyaan itu. Ketiga, jelaskan jawabanmu dengan kata sendiri tanpa menyalin kalimat buku.\n\nJika kamu bisa melakukan tiga langkah itu, berarti materi sudah mulai dipahami, bukan hanya dibaca.',
-        icon: Icons.quiz_outlined,
-        color: colors[6],
-      ),
-      MaterialSlide(
-        title: 'Subbab 8 - Cara Membaca Buku SIBI',
-        body:
-            'Saat memakai buku dari SIBI/Katalog Buku Kemendikdasmen, jangan langsung mencari rangkuman akhir. Mulailah dari tujuan pembelajaran, gambar atau ilustrasi pembuka, pertanyaan pemantik, uraian konsep, contoh aktivitas, lalu refleksi. Urutan ini membantu kamu memahami alasan materi disusun.\n\nUntuk ${material.title}, tandai bagian yang memuat ${concept(0)} dan ${concept(1)}. Setelah itu cocokkan dengan catatan AHEAD: apakah definisinya sama, apakah contoh di buku lebih lengkap, dan apakah ada aktivitas yang bisa kamu coba sendiri.\n\nAHEAD berperan sebagai pendamping belajar. Buku resmi tetap menjadi rujukan utama untuk pendalaman dan istilah yang lebih lengkap.',
-        icon: Icons.edit_note_rounded,
-        color: colors[7],
-      ),
-      MaterialSlide(
-        title: 'Subbab 9 - Latihan ala Ruang Murid',
-        body:
-            '$practiceGuide\n\nUntuk pilihan ganda, baca stem soal sampai selesai, cari kata kunci, lalu coret opsi yang tidak sesuai dengan konteks. Untuk essay, gunakan struktur konsep, penjelasan, contoh, dan simpulan. Struktur ini membuat jawaban lebih mudah dinilai dan lebih aman saat soal meminta alasan.\n\nCoba buat satu soal sendiri: "Bagaimana hubungan ${concept(0)} dengan ${material.title}?" Setelah itu jawab dalam empat kalimat. Jika jawabanmu masih terlalu pendek, tambahkan contoh atau bukti.',
-        icon: Icons.summarize_outlined,
-        color: colors[8],
-      ),
-      MaterialSlide(
-        title: 'Subbab 10 - Kesalahan Umum',
-        body:
-            'Kesalahan yang paling sering terjadi adalah menghafal istilah tanpa memahami ciri pembeda. Misalnya ${concept(2)} dapat tertukar dengan ${concept(3)} karena keduanya berada dalam topik yang sama. Kesalahan lain adalah menjawab terlalu umum, tidak menyebut bukti, atau memakai contoh yang tidak sesuai.\n\nCara menghindarinya: tulis definisi pendek, buat satu contoh, sebutkan ciri pembeda, lalu hubungkan dengan pertanyaan. Saat ada dua opsi yang terlihat benar, pilih opsi yang paling lengkap menjelaskan sebab, proses, dan akibat.\n\nHindari kata mutlak seperti selalu, pasti, semua, dan tidak pernah jika soal tidak memberi data yang mendukung.',
-        icon: Icons.rule_rounded,
-        color: colors[9],
-      ),
-      MaterialSlide(
-        title: 'Subbab 11 - Rangkuman Mendalam',
-        body:
-            'Inti ${material.title} adalah ${material.description}. Lima kata kunci yang perlu dikuasai adalah ${concept(0)}, ${concept(1)}, ${concept(2)}, ${concept(3)}, dan ${concept(4)}. Kelima kata ini sebaiknya tidak dipahami sebagai daftar hafalan, tetapi sebagai alur berpikir.\n\nRangkuman satu menit: jelaskan definisi materi, sebutkan dua konsep penting, beri satu contoh, lalu tutup dengan manfaat belajar topik ini untuk kehidupan atau ujian. Jika kamu belum bisa menjelaskan dalam satu menit, ulangi subbab 2 sampai 5.\n\nRangkuman yang matang biasanya punya tiga ciri: ringkas, runtut, dan memakai contoh. Ciri itulah yang membuat jawaban terlihat lebih siap.',
-        icon: Icons.fact_check_outlined,
-        color: colors[10],
-      ),
-      MaterialSlide(
-        title: 'Subbab 12 - Persiapan Asesmen',
-        body:
-            'Sebelum menekan selesai, pastikan kamu bisa menjawab empat hal ini: apa definisi ${concept(0)}, bagaimana hubungan ${concept(1)} dengan ${material.title}, contoh apa yang paling mudah diingat, dan kesalahan apa yang harus dihindari.\n\nUntuk persiapan ujian, buat kartu belajar berisi kata kunci di depan dan penjelasan singkat di belakang. Ulangi kartu itu sebelum latihan soal. Jika tersedia video pembelajaran atau sumber resmi dari Ruang Murid, gunakan sebagai penguat setelah membaca slide.\n\nSetelah materi selesai, beri rating pengalaman belajar 1-10 agar AHEAD dapat mencatat kualitas belajar dan membantu memilih materi berikutnya.',
-        icon: Icons.flag_circle_outlined,
-        color: colors[11],
-      ),
+      'Pengertian ${material.title}',
+      '$c(0) dalam ${subject.name}',
+      'Hubungan $c(1) dan $c(2)',
+      'Ciri Penting $c(3)',
+      'Contoh ${material.title} di Sekitar Siswa',
+      'Data dan Bukti pada ${subject.name}',
+      'Proses Terjadinya $c(1)',
+      'Pendalaman dari Buku SIBI',
+      'Latihan Soal ${material.title}',
+      'Perbedaan $c(2) dan $c(3)',
+      'Rangkuman ${material.title}',
+      'Refleksi Belajar ${material.title}',
     ];
   }
 
-  String _curriculumFoundationFor(MaterialItem material, SubjectItem subject) {
-    switch (subject.name) {
-      case 'Biologi':
-        return 'Landasan kurikulum: CP/Fase E kelas X IPA menempatkan Biologi pada pemahaman kehidupan, keanekaragaman hayati, ekosistem, perubahan lingkungan, serta peran makhluk hidup mikroskopis seperti virus. Materi ${material.title} disusun agar siswa mampu mengamati, mengelompokkan, menjelaskan hubungan, dan mengambil sikap terhadap masalah lingkungan atau kehidupan.';
-      case 'Kimia':
-        return 'Landasan kurikulum: CP/Fase E kelas X IPA menempatkan Kimia pada cara kerja ilmiah, struktur materi, hukum dasar, serta pemanfaatan kimia untuk kehidupan berkelanjutan. Materi ${material.title} diarahkan agar siswa memahami konsep, membaca data percobaan, dan menilai proses kimia secara aman serta bertanggung jawab.';
-      case 'Fisika':
-        return 'Landasan kurikulum: CP/Fase E kelas X IPA menempatkan Fisika pada pengukuran, model, gerak, energi, dan perubahan iklim. Materi ${material.title} disusun agar siswa mampu menghubungkan besaran, satuan, data, grafik, dan fenomena sehari-hari dengan penalaran ilmiah.';
-      case 'Sejarah':
-        return 'Landasan kurikulum: CP/Fase E kelas X IPS menempatkan Sejarah pada kemampuan memahami manusia, ruang, waktu, sumber, perubahan, keberlanjutan, dan perkembangan Indonesia. Materi ${material.title} diarahkan agar siswa dapat membaca peristiwa secara kronologis dan kritis.';
-      case 'Sosiologi':
-        return 'Landasan kurikulum: CP/Fase E kelas X IPS menempatkan Sosiologi pada pemahaman gejala sosial, identitas, tindakan, interaksi, nilai, dan norma. Materi ${material.title} membantu siswa membaca kehidupan masyarakat secara objektif, bukan hanya berdasarkan opini pribadi.';
-      case 'Ekonomi':
-        return 'Landasan kurikulum: CP/Fase E kelas X IPS menempatkan Ekonomi pada pemahaman kebutuhan, kelangkaan, pilihan, pasar, dan lembaga keuangan. Materi ${material.title} diarahkan agar siswa dapat mengambil keputusan ekonomi dengan alasan yang logis.';
-      case 'Geografi':
-        return 'Landasan kurikulum: CP/Fase E kelas X IPS menempatkan Geografi pada konsep keruangan, lingkungan, kewilayahan, peta, penginderaan jauh, dan SIG. Materi ${material.title} membantu siswa membaca fenomena geosfer melalui lokasi, pola, interaksi, dan data spasial.';
-    }
-    return 'Landasan kurikulum: materi ${material.title} disusun selaras dengan CP/Fase E kelas X agar siswa memahami konsep, contoh, data, dan penerapan.';
+  String _cap(String text) {
+    final words = text.trim().split(RegExp(r'\s+'));
+    return words
+        .map((word) => word.isEmpty
+            ? word
+            : '${word[0].toUpperCase()}${word.substring(1)}')
+        .join(' ');
   }
 
-  String _officialSourceNoteFor(SubjectItem subject) {
-    final book = subject.category == 'IPA'
-        ? 'buku IPA kelas X di SIBI/Katalog Buku Kemendikdasmen'
-        : 'buku IPS kelas X di SIBI/Katalog Buku Kemendikdasmen';
-    return 'Rujukan belajar: CP/Fase E Kemendikdasmen sebagai arah capaian, $book sebagai sumber buku resmi, dan Rumah Pendidikan - Ruang Murid sebagai referensi bahan belajar serta latihan soal. Ringkasan AHEAD dibuat sebagai pendamping, bukan pengganti sumber resmi.';
+  String _officialImageFor(SubjectItem subject, int index) {
+    const ruangMuridDesktop =
+        'https://pusatinformasi.rumahpendidikan.kemendikdasmen.go.id/hc/article_attachments/54200054367513';
+    const ruangMuridUnits =
+        'https://pusatinformasi.rumahpendidikan.kemendikdasmen.go.id/hc/article_attachments/52475178541721';
+    const ruangMuridMaterial =
+        'https://pusatinformasi.rumahpendidikan.kemendikdasmen.go.id/hc/article_attachments/52475247453977';
+    const ruangMuridIcon =
+        'https://rumah.pendidikan.go.id/api/upload/rumah-pendidikan-production/room-icon/iconruangmuridcolour2x-30_db909fa0-965c-4a00-9cc0-b6a417111279.png';
+    if (subject.category == 'IPA') {
+      return [ruangMuridUnits, ruangMuridMaterial, ruangMuridDesktop][index % 3];
+    }
+    return [
+      ruangMuridDesktop,
+      ruangMuridMaterial,
+      ruangMuridUnits,
+      ruangMuridIcon
+    ][index % 4];
+  }
+
+  String _officialImageCaption(SubjectItem subject, int index) {
+    if (index % 3 == 0) {
+      return 'Visual referensi resmi Sumber Belajar Ruang Murid.';
+    }
+    if (index % 3 == 1) {
+      return 'Contoh tampilan materi digital dari Rumah Pendidikan.';
+    }
+    return 'Rujukan pendamping: SIBI/Katalog Buku dan Ruang Murid.';
   }
 
   String _contextualCaseFor(MaterialItem material, SubjectItem subject) {
@@ -8142,6 +8129,42 @@ class MaterialSlideDeck extends StatelessWidget {
                             ),
                           ],
                         ),
+                        if (slide.imageUrl != null) ...[
+                          const SizedBox(height: 16),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: AspectRatio(
+                              aspectRatio: 16 / 7,
+                              child: Image.network(
+                                slide.imageUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  color: dark
+                                      ? const Color(0xFF1F2937)
+                                      : Colors.white.withValues(alpha: .62),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    'Gambar rujukan belum dapat dimuat',
+                                    style:
+                                        TextStyle(color: AheadColors.muted),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (slide.imageCaption != null) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              slide.imageCaption!,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: dark
+                                    ? const Color(0xFFCBD5E1)
+                                    : AheadColors.muted,
+                              ),
+                            ),
+                          ],
+                        ],
                         const SizedBox(height: 18),
                         Text(
                           slide.body,
