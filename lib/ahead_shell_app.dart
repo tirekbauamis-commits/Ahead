@@ -3422,19 +3422,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
                       : Icons.arrow_forward_rounded,
                   onPressed: isLastSlide
                       ? () {
-                          if (rating == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Pilih rating pengalaman belajar dulu sebelum selesai.')));
-                            return;
-                          }
-                          setState(() =>
-                              aheadStore.completeMaterial(widget.material));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Materi selesai dan progres disimpan.')));
+                          aheadStore.completeMaterial(widget.material);
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
