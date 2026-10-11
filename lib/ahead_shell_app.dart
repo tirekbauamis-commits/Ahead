@@ -2166,9 +2166,25 @@ class AheadStore {
     );
     user.examResults.add(result);
     user.history.add('Menyelesaikan ujian ${exam.title} dengan skor $score%');
+    user.notifications.add(AppNotification(
+      'Selamat, ujian selesai',
+      'Anda telah mengerjakan ${exam.title} dengan skor $score%. Pembahasan dan ringkasan jawaban sudah tersedia.',
+      DateTime.now(),
+    ));
     _queueSave();
     return result;
   }
+
+  ExamResult? examResultFor(ExamItem exam) {
+    final user = currentUser;
+    if (user == null) return null;
+    for (final result in user.examResults.reversed) {
+      if (result.exam.id == exam.id) return result;
+    }
+    return null;
+  }
+
+  bool hasCompletedExam(ExamItem exam) => examResultFor(exam) != null;
 
   List<Object> search(String query, {String filter = 'Semua'}) {
     final q = query.toLowerCase().trim();
@@ -3874,37 +3890,107 @@ class ExamDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final result = aheadStore.examResultFor(exam);
     return DetailScaffold(
       title: 'Detail Ujian',
       child: AheadScroll(
         children: [
           FeaturedExamCard(exam: exam, compact: true),
           const SizedBox(height: 18),
-          AheadCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Konfirmasi Mulai',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 10),
-                Text(
-                    'Timer berjalan selama ${exam.durationMinutes} menit. Jawaban akan disimpan saat kamu menyelesaikan ujian.',
-                    style:
-                        const TextStyle(color: AheadColors.muted, height: 1.5)),
-                const SizedBox(height: 18),
-                AheadButton(
-                    label: 'Mulai Ujian',
-                    icon: Icons.arrow_forward_rounded,
-                    onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => ExamQuestionPage(exam: exam)))),
-              ],
+          result == null
+              ? AheadCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Konfirmasi Mulai',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 10),
+                      Text(
+                          'Timer berjalan selama ${exam.durationMinutes} menit. Jawaban akan disimpan saat kamu menyelesaikan ujian.',
+                          style: const TextStyle(
+                              color: AheadColors.muted, height: 1.5)),
+                      const SizedBox(height: 18),
+                      AheadButton(
+                          label: 'Mulai Ujian',
+                          icon: Icons.arrow_forward_rounded,
+                          onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      ExamQuestionPage(exam: exam)))),
+                    ],
+                  ),
+                )
+              : CompletedExamNotice(result: result),
+        ],
+      ),
+    );
+  }
+}
+
+class CompletedExamNotice extends StatelessWidget {
+  const CompletedExamNotice({super.key, required this.result});
+
+  final ExamResult result;
+
+  @override
+  Widget build(BuildContext context) {
+    return AheadCard(
+      color: const Color(0xFFE8F8F1),
+      border: Border.all(color: const Color(0xFFB7E7D0)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.verified_rounded, color: AheadColors.success),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text('Ujian ini sudah kamu kerjakan',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
             ),
+            AheadPill('${result.score}%', Colors.white,
+                textColor: const Color(0xFF087A55)),
+          ]),
+          const SizedBox(height: 12),
+          Text(
+              'Selamat, Anda telah menyelesaikan ${result.exam.title}. Hasilnya sudah tercatat di progres, riwayat, dan notifikasi akun.',
+              style: const TextStyle(color: AheadColors.text, height: 1.45)),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            child: Column(children: [
+              _CompletedExamRow('Benar', result.correct.toString()),
+              _CompletedExamRow('Salah', result.wrong.toString()),
+              _CompletedExamRow('Kosong', result.unanswered.toString()),
+              _CompletedExamRow('Waktu', '${result.durationMinutes} menit'),
+            ]),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _CompletedExamRow extends StatelessWidget {
+  const _CompletedExamRow(this.label, this.value);
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(children: [
+        Text(label),
+        const Spacer(),
+        Text(value,
+            style: const TextStyle(
+                color: Color(0xFF087A55), fontWeight: FontWeight.w900)),
+      ]),
     );
   }
 }
@@ -3928,11 +4014,13 @@ class _ExamQuestionPageState extends State<ExamQuestionPage> {
   int index = 0;
   late int remaining = widget.exam.durationMinutes * 60;
   Timer? timer;
+  bool finished = false;
 
   @override
   void initState() {
     super.initState();
     timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted || finished) return;
       if (remaining <= 0) {
         finish();
       } else {
@@ -3948,6 +4036,8 @@ class _ExamQuestionPageState extends State<ExamQuestionPage> {
   }
 
   void finish() {
+    if (finished) return;
+    finished = true;
     timer?.cancel();
     final result = aheadStore.saveExam(
         widget.exam, questions, answers, widget.exam.durationMinutes);
@@ -4037,6 +4127,26 @@ class ExamResultPage extends StatelessWidget {
       title: 'Hasil Ujian',
       child: AheadScroll(
         children: [
+          AheadCard(
+            color: const Color(0xFFE8F8F1),
+            border: Border.all(color: const Color(0xFFB7E7D0)),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.celebration_rounded,
+                    color: AheadColors.success),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Selamat, Anda telah mengerjakan ${result.exam.title}. Hasil ujian sudah tersimpan dan masuk ke notifikasi.',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w800, height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           ResultHero(score: result.score, title: result.exam.title),
           const SizedBox(height: 16),
           ResultBreakdown(items: {
@@ -6467,6 +6577,7 @@ class FeaturedExamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final result = aheadStore.examResultFor(exam);
     final card = Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
@@ -6504,7 +6615,11 @@ class FeaturedExamCard extends StatelessWidget {
                     fontWeight: FontWeight.w900, color: AheadColors.navy)),
             const Spacer(),
             if (!compact)
-              AheadPill('Buka Detail', Colors.white, textColor: AheadColors.blue)
+              AheadPill(result == null ? 'Buka Detail' : 'Sudah Dikerjakan',
+                  Colors.white,
+                  textColor: result == null
+                      ? AheadColors.blue
+                      : const Color(0xFF087A55))
           ]),
         ],
       ),
@@ -6529,6 +6644,7 @@ class ExamListCard extends StatelessWidget {
     final subject = aheadStore.subjectById(exam.subjectId);
     final dark = Theme.of(context).brightness == Brightness.dark;
     final readiness = exam.id == 4 ? 0 : user.materialMastery;
+    final completed = aheadStore.hasCompletedExam(exam);
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: () => openPage(context, ExamDetailPage(exam: exam)),
@@ -6620,8 +6736,11 @@ class ExamListCard extends StatelessWidget {
                 Icon(Icons.schedule_rounded, size: 18, color: AheadColors.blue),
                 Text(' ${exam.durationMinutes} menit'),
                 const Spacer(),
-                AheadPill('Buka Detail', AheadColors.softBlue,
-                    textColor: AheadColors.blue)
+                AheadPill(completed ? 'Sudah Dikerjakan' : 'Buka Detail',
+                    completed ? const Color(0xFFDFF7EA) : AheadColors.softBlue,
+                    textColor: completed
+                        ? const Color(0xFF087A55)
+                        : AheadColors.blue)
               ]),
             ),
           ],
