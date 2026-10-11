@@ -6467,7 +6467,7 @@ class FeaturedExamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final card = Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
           color: const Color(0xFFDCE3FF),
@@ -6503,12 +6503,17 @@ class FeaturedExamCard extends StatelessWidget {
                 style: const TextStyle(
                     fontWeight: FontWeight.w900, color: AheadColors.navy)),
             const Spacer(),
-            FilledButton(
-                onPressed: () => openPage(context, ExamDetailPage(exam: exam)),
-                child: const Text('Mulai Ujian'))
+            if (!compact)
+              AheadPill('Buka Detail', Colors.white, textColor: AheadColors.blue)
           ]),
         ],
       ),
+    );
+    if (compact) return card;
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => openPage(context, ExamDetailPage(exam: exam)),
+      child: card,
     );
   }
 }
@@ -6524,101 +6529,103 @@ class ExamListCard extends StatelessWidget {
     final subject = aheadStore.subjectById(exam.subjectId);
     final dark = Theme.of(context).brightness == Brightness.dark;
     final readiness = exam.id == 4 ? 0 : user.materialMastery;
-    return AheadCard(
-      color: dark
-          ? Color.lerp(subject.tint, const Color(0xFF111827), .78)!
-          : Colors.white,
-      border: Border.all(
-          color: dark
-              ? const Color(0xFF334155)
-              : Color.lerp(subject.tint, AheadColors.blue, .18)!),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(
-              width: 58,
-              height: 58,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    subject.tint,
-                    Color.lerp(subject.tint, AheadColors.blue, .45)!,
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => openPage(context, ExamDetailPage(exam: exam)),
+      child: AheadCard(
+        color: dark
+            ? Color.lerp(subject.tint, const Color(0xFF111827), .78)!
+            : Colors.white,
+        border: Border.all(
+            color: dark
+                ? const Color(0xFF334155)
+                : Color.lerp(subject.tint, AheadColors.blue, .18)!),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      subject.tint,
+                      Color.lerp(subject.tint, AheadColors.blue, .45)!,
+                    ],
+                  ),
+                ),
+                child: Icon(subject.icon, color: AheadColors.blue, size: 30),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(spacing: 8, runSpacing: 8, children: [
+                      AheadPill(
+                          exam.type,
+                          exam.id == 3
+                              ? AheadColors.peach
+                              : AheadColors.softBlue),
+                      AheadPill(subject.name, subject.tint,
+                          textColor: AheadColors.navy),
+                    ]),
+                    const SizedBox(height: 10),
+                    Text(exam.title,
+                        style: TextStyle(
+                            fontSize: 21,
+                            height: 1.15,
+                            fontWeight: FontWeight.w900,
+                            color: Theme.of(context).colorScheme.onSurface)),
+                    const SizedBox(height: 6),
+                    Text(exam.description,
+                        style: TextStyle(
+                            color: dark
+                                ? const Color(0xFFC7D2FE)
+                                : AheadColors.muted,
+                            height: 1.35))
                   ],
                 ),
               ),
-              child: Icon(subject.icon, color: AheadColors.blue, size: 30),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(spacing: 8, runSpacing: 8, children: [
-                    AheadPill(
-                        exam.type,
-                        exam.id == 3
-                            ? AheadColors.peach
-                            : AheadColors.softBlue),
-                    AheadPill(subject.name, subject.tint,
-                        textColor: AheadColors.navy),
-                  ]),
-                  const SizedBox(height: 10),
-                  Text(exam.title,
-                      style: TextStyle(
-                          fontSize: 21,
-                          height: 1.15,
-                          fontWeight: FontWeight.w900,
-                          color: Theme.of(context).colorScheme.onSurface)),
-                  const SizedBox(height: 6),
-                  Text(exam.description,
-                      style: TextStyle(
-                          color: dark
-                              ? const Color(0xFFC7D2FE)
-                              : AheadColors.muted,
-                          height: 1.35))
-                ],
-              ),
-            ),
-          ]),
-          const SizedBox(height: 18),
-          Row(children: [
-            const Text('Kesiapan Materi'),
-            const Spacer(),
-            Text(readiness == 0 ? 'Belum Dimulai' : '$readiness%',
-                style: const TextStyle(
-                    fontWeight: FontWeight.w900, color: AheadColors.blue))
-          ]),
-          const SizedBox(height: 8),
-          AheadProgress(
-              value: readiness / 100,
-              color: exam.id == 3 ? const Color(0xFFC23300) : AheadColors.blue),
-          const SizedBox(height: 18),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: dark ? const Color(0xFF1E293B) : AheadColors.bg,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(children: [
-              Icon(Icons.format_list_numbered_rounded,
-                  size: 18, color: AheadColors.blue),
-              Text(' ${exam.totalQuestions} soal'),
-              const SizedBox(width: 16),
-              Icon(Icons.schedule_rounded, size: 18, color: AheadColors.blue),
-              Text(' ${exam.durationMinutes} menit'),
-              const Spacer(),
-              FilledButton.icon(
-                  onPressed: () =>
-                      openPage(context, ExamDetailPage(exam: exam)),
-                  icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                  label: const Text('Mulai'))
             ]),
-          ),
-        ],
+            const SizedBox(height: 18),
+            Row(children: [
+              const Text('Kesiapan Materi'),
+              const Spacer(),
+              Text(readiness == 0 ? 'Belum Dimulai' : '$readiness%',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w900, color: AheadColors.blue))
+            ]),
+            const SizedBox(height: 8),
+            AheadProgress(
+                value: readiness / 100,
+                color:
+                    exam.id == 3 ? const Color(0xFFC23300) : AheadColors.blue),
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: dark ? const Color(0xFF1E293B) : AheadColors.bg,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(children: [
+                Icon(Icons.format_list_numbered_rounded,
+                    size: 18, color: AheadColors.blue),
+                Text(' ${exam.totalQuestions} soal'),
+                const SizedBox(width: 16),
+                Icon(Icons.schedule_rounded, size: 18, color: AheadColors.blue),
+                Text(' ${exam.durationMinutes} menit'),
+                const Spacer(),
+                AheadPill('Buka Detail', AheadColors.softBlue,
+                    textColor: AheadColors.blue)
+              ]),
+            ),
+          ],
+        ),
       ),
     );
   }
