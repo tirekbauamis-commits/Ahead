@@ -2224,6 +2224,11 @@ class AheadStore {
         ? material.description
         : paragraphs[index % paragraphs.length];
     String concept(int index) => concepts[index % concepts.length];
+    final foundation = _curriculumFoundationFor(material, subject);
+    final sourceNote = _officialSourceNoteFor(subject);
+    final inquiryGuide = _inquiryGuideFor(subject);
+    final contextualCase = _contextualCaseFor(material, subject);
+    final practiceGuide = _practiceGuideFor(subject);
     const colors = [
       Color(0xFFEAF1FF),
       Color(0xFFFFF2D7),
@@ -2235,80 +2240,157 @@ class AheadStore {
       Color(0xFFEFF7E9),
       Color(0xFFFFEEF5),
       Color(0xFFEFF2F7),
+      Color(0xFFEAF7F3),
+      Color(0xFFFFF1EA),
     ];
 
     return [
       MaterialSlide(
-        title: 'Gambaran besar ${material.title}',
+        title: 'Subbab 1 - Arah CP/Fase E',
         body:
-            '${paragraph(0)}\n\nPada slide awal ini, pahami dulu posisi materi ${material.title} dalam ${subject.name}. Tujuannya bukan menghafal semua kalimat, tetapi menangkap masalah utama, istilah penting, dan alasan materi ini perlu dipelajari siswa kelas ${material.classLevel}.',
+            '$foundation\n\nMateri ${material.title} dipelajari agar siswa kelas ${material.classLevel} tidak hanya menghafal istilah, tetapi dapat menjelaskan ${material.description.toLowerCase()} secara runtut. Fokus belajarnya adalah memahami konteks, menguasai kata kunci, membaca bukti, lalu menyusun kesimpulan yang masuk akal.\n\n$sourceNote',
         icon: Icons.explore_outlined,
         color: colors[0],
       ),
       MaterialSlide(
-        title: 'Konsep inti yang wajib dikuasai',
+        title: 'Subbab 2 - Peta Konsep Materi',
         body:
-            'Konsep utama pada materi ini adalah ${concept(0)}, ${concept(1)}, dan ${concept(2)}. Ketiganya saling berhubungan karena membantu kamu menjelaskan ${material.description.toLowerCase()} dengan bahasa yang runtut.\n\nSaat membaca soal, tandai kata kunci lebih dulu. Kalau kata kuncinya dekat dengan ${concept(0)}, jawaban biasanya menuntut definisi, contoh, atau hubungan sebab-akibat.',
+            '${paragraph(0)}\n\nPeta konsep ${material.title} dimulai dari ${concept(0)}, lalu berkembang ke ${concept(1)}, ${concept(2)}, ${concept(3)}, dan ${concept(4)}. Urutan ini penting karena satu konsep biasanya menjadi dasar untuk membaca konsep berikutnya. Jika peta konsepnya jelas, soal pilihan ganda dan essay akan lebih mudah dipilah.\n\nCara belajar yang disarankan: tulis judul materi di tengah buku catatan, cabangkan lima kata kunci di atas, lalu beri satu contoh nyata pada setiap cabang.',
         icon: Icons.lightbulb_outline_rounded,
         color: colors[1],
       ),
       MaterialSlide(
-        title: 'Pendalaman materi',
+        title: 'Subbab 3 - Istilah Kunci',
         body:
-            '${paragraph(1)}\n\nBagian pendalaman ini penting karena banyak soal tidak bertanya definisi langsung. Soal sering memberi kasus, lalu meminta kamu memilih konsep yang paling tepat. Hubungkan kasus dengan ${concept(3)} dan jelaskan dampaknya secara logis.',
+            'Istilah pertama adalah ${concept(0)}. Pahami istilah ini sebagai pintu masuk materi, karena hampir semua pembahasan ${material.title} akan kembali ke konsep tersebut. Istilah kedua adalah ${concept(1)}, yaitu bagian yang membantu kamu melihat proses atau hubungan antarbagian.\n\nIstilah ketiga adalah ${concept(2)}, yang sering muncul dalam soal kasus. Istilah keempat adalah ${concept(3)}, biasanya dipakai untuk menjelaskan dampak atau alasan. Istilah kelima adalah ${concept(4)}, yang dapat digunakan sebagai penutup jawaban saat kamu diminta memberi solusi, kesimpulan, atau contoh.\n\nJangan menghafal istilah secara terpisah. Buat satu kalimat penghubung seperti: ${concept(0)} berkaitan dengan ${concept(1)}, lalu terlihat melalui ${concept(2)} dan berdampak pada ${concept(3)}.',
         icon: Icons.manage_search_rounded,
         color: colors[2],
       ),
       MaterialSlide(
-        title: 'Contoh penerapan di kehidupan nyata',
+        title: 'Subbab 4 - Penjelasan Konsep Utama',
         body:
-            'Contoh penerapan ${material.title} dapat ditemukan dari situasi sehari-hari, berita, data sekolah, lingkungan sekitar, atau fenomena masyarakat. Pada ${subject.name}, contoh yang baik selalu punya konteks, bukti, dan kesimpulan.\n\nCoba gunakan pola: peristiwa yang diamati, konsep yang cocok, alasan hubungan, lalu simpulan singkat.',
+            '${paragraph(1)}\n\nPada tahap ini, baca materi seperti sedang menjawab pertanyaan "mengapa". Mengapa konsep ini terjadi? Mengapa contoh tertentu cocok? Mengapa pilihan jawaban lain kurang tepat? Pertanyaan seperti ini melatih penalaran dan sesuai dengan pembelajaran fase E yang menekankan pemahaman, proses berpikir, serta penerapan.\n\nJika materi terasa panjang, pecah menjadi tiga bagian: pengertian, proses, dan dampak. Setelah itu buat contoh singkat dari kehidupan sekitar agar konsep tidak berhenti sebagai definisi.',
         icon: Icons.public_rounded,
         color: colors[3],
       ),
       MaterialSlide(
-        title: 'Langkah memahami soal',
+        title: 'Subbab 5 - Contoh Kontekstual',
         body:
-            'Gunakan empat langkah ini: baca pertanyaan sampai tuntas, garis bawahi kata kunci, hubungkan dengan ${concept(0)} atau ${concept(1)}, lalu pilih jawaban yang paling sesuai dengan konteks.\n\nKalau ada dua pilihan yang terlihat benar, cari pilihan yang paling lengkap menjelaskan sebab, proses, dan akibat. Hindari jawaban yang terlalu mutlak seperti selalu, pasti, atau tidak pernah jika konteksnya tidak mendukung.',
+            '$contextualCase\n\nSaat membuat contoh, pastikan ada tiga unsur: situasi yang diamati, konsep yang digunakan, dan alasan hubungan antara keduanya. Contoh yang baik tidak harus rumit. Yang penting, contoh tersebut bisa menunjukkan bahwa kamu benar-benar memahami ${material.title}.\n\nLatihan kecil: ambil satu berita, lingkungan sekolah, kegiatan rumah, atau fenomena masyarakat. Tentukan apakah fenomena itu berhubungan dengan ${concept(0)} atau ${concept(1)}, lalu tulis alasan dalam dua kalimat.',
         icon: Icons.checklist_rtl_rounded,
         color: colors[4],
       ),
       MaterialSlide(
-        title: 'Kesalahan umum yang harus dihindari',
+        title: 'Subbab 6 - Data, Bukti, dan Penalaran',
         body:
-            'Kesalahan yang sering terjadi adalah hanya menghafal istilah tanpa memahami perbedaannya. Misalnya ${concept(2)} sering tertukar dengan ${concept(3)} karena keduanya muncul dalam topik yang sama.\n\nCara menghindarinya: tulis definisi pendek, buat satu contoh, lalu jelaskan apa yang membedakan konsep tersebut dari konsep lain.',
+            '$inquiryGuide\n\nDalam materi ${material.title}, bukti dapat berupa data pengamatan, tabel, grafik, teks sumber, gambar, peta, kutipan, hasil percobaan, atau contoh kasus. Bukti membantu jawabanmu lebih kuat karena tidak hanya berisi pendapat.\n\nPola berpikir yang dipakai: amati data, temukan kata kunci, hubungkan dengan konsep, lalu buat simpulan. Jika data tidak mendukung kesimpulan, jangan memaksakan jawaban. Ubah kesimpulan agar sesuai dengan bukti.',
         icon: Icons.warning_amber_rounded,
         color: colors[5],
       ),
       MaterialSlide(
-        title: 'Mini cek pemahaman',
+        title: 'Subbab 7 - Keterampilan Proses',
         body:
-            'Jawab cepat dalam hati: apa arti ${concept(0)}? Kapan ${concept(1)} digunakan? Bagaimana ${concept(2)} memengaruhi ${material.description.toLowerCase()}?\n\nKalau tiga pertanyaan ini belum lancar, ulangi slide sebelumnya. Kalau sudah lancar, lanjutkan ke bagian rangkuman dan aplikasi soal.',
+            'Keterampilan proses membuat belajar lebih aktif. Untuk ${subject.name}, keterampilan ini dapat berupa mengamati, bertanya, mengelompokkan informasi, membandingkan data, membuat penjelasan, dan mengomunikasikan hasil belajar.\n\nPada ${material.title}, latih dirimu dengan tiga tugas kecil. Pertama, tulis satu pertanyaan yang muncul dari materi. Kedua, cari satu bukti yang bisa menjawab pertanyaan itu. Ketiga, jelaskan jawabanmu dengan kata sendiri tanpa menyalin kalimat buku.\n\nJika kamu bisa melakukan tiga langkah itu, berarti materi sudah mulai dipahami, bukan hanya dibaca.',
         icon: Icons.quiz_outlined,
         color: colors[6],
       ),
       MaterialSlide(
-        title: 'Aplikasi ke soal pilihan ganda dan essay',
+        title: 'Subbab 8 - Cara Membaca Buku SIBI',
         body:
-            'Untuk pilihan ganda, cari opsi yang paling sesuai dengan kata kunci soal. Untuk essay, jawab dengan struktur: konsep, penjelasan, contoh, dan kesimpulan.\n\nContoh kerangka essay: "${concept(0)} adalah ..., hal ini terlihat pada ..., sehingga dapat disimpulkan bahwa ...". Kerangka seperti ini membuat jawaban lebih rapi dan mudah dinilai.',
+            'Saat memakai buku dari SIBI/Katalog Buku Kemendikdasmen, jangan langsung mencari rangkuman akhir. Mulailah dari tujuan pembelajaran, gambar atau ilustrasi pembuka, pertanyaan pemantik, uraian konsep, contoh aktivitas, lalu refleksi. Urutan ini membantu kamu memahami alasan materi disusun.\n\nUntuk ${material.title}, tandai bagian yang memuat ${concept(0)} dan ${concept(1)}. Setelah itu cocokkan dengan catatan AHEAD: apakah definisinya sama, apakah contoh di buku lebih lengkap, dan apakah ada aktivitas yang bisa kamu coba sendiri.\n\nAHEAD berperan sebagai pendamping belajar. Buku resmi tetap menjadi rujukan utama untuk pendalaman dan istilah yang lebih lengkap.',
         icon: Icons.edit_note_rounded,
         color: colors[7],
       ),
       MaterialSlide(
-        title: 'Rangkuman cepat',
+        title: 'Subbab 9 - Latihan ala Ruang Murid',
         body:
-            'Inti materi ${material.title}: ${material.description}. Kata kunci yang perlu kamu ingat adalah ${concept(0)}, ${concept(1)}, ${concept(2)}, ${concept(3)}, dan ${concept(4)}.\n\nJika diminta menjelaskan, jangan berhenti pada definisi. Tambahkan hubungan antar konsep dan contoh yang relevan agar jawabanmu terlihat matang.',
+            '$practiceGuide\n\nUntuk pilihan ganda, baca stem soal sampai selesai, cari kata kunci, lalu coret opsi yang tidak sesuai dengan konteks. Untuk essay, gunakan struktur konsep, penjelasan, contoh, dan simpulan. Struktur ini membuat jawaban lebih mudah dinilai dan lebih aman saat soal meminta alasan.\n\nCoba buat satu soal sendiri: "Bagaimana hubungan ${concept(0)} dengan ${material.title}?" Setelah itu jawab dalam empat kalimat. Jika jawabanmu masih terlalu pendek, tambahkan contoh atau bukti.',
         icon: Icons.summarize_outlined,
         color: colors[8],
       ),
       MaterialSlide(
-        title: 'Penutup belajar',
+        title: 'Subbab 10 - Kesalahan Umum',
         body:
-            'Sebelum menandai selesai, pastikan kamu bisa menjelaskan ${material.title} dengan kalimat sendiri selama satu menit. Jika masih bingung, ulangi slide yang membahas konsep inti dan kesalahan umum.\n\nSetelah selesai, beri rating pengalaman belajar supaya AHEAD bisa mencatat kualitas belajarmu dan membantu kamu memilih materi berikutnya.',
-        icon: Icons.flag_circle_outlined,
+            'Kesalahan yang paling sering terjadi adalah menghafal istilah tanpa memahami ciri pembeda. Misalnya ${concept(2)} dapat tertukar dengan ${concept(3)} karena keduanya berada dalam topik yang sama. Kesalahan lain adalah menjawab terlalu umum, tidak menyebut bukti, atau memakai contoh yang tidak sesuai.\n\nCara menghindarinya: tulis definisi pendek, buat satu contoh, sebutkan ciri pembeda, lalu hubungkan dengan pertanyaan. Saat ada dua opsi yang terlihat benar, pilih opsi yang paling lengkap menjelaskan sebab, proses, dan akibat.\n\nHindari kata mutlak seperti selalu, pasti, semua, dan tidak pernah jika soal tidak memberi data yang mendukung.',
+        icon: Icons.rule_rounded,
         color: colors[9],
       ),
+      MaterialSlide(
+        title: 'Subbab 11 - Rangkuman Mendalam',
+        body:
+            'Inti ${material.title} adalah ${material.description}. Lima kata kunci yang perlu dikuasai adalah ${concept(0)}, ${concept(1)}, ${concept(2)}, ${concept(3)}, dan ${concept(4)}. Kelima kata ini sebaiknya tidak dipahami sebagai daftar hafalan, tetapi sebagai alur berpikir.\n\nRangkuman satu menit: jelaskan definisi materi, sebutkan dua konsep penting, beri satu contoh, lalu tutup dengan manfaat belajar topik ini untuk kehidupan atau ujian. Jika kamu belum bisa menjelaskan dalam satu menit, ulangi subbab 2 sampai 5.\n\nRangkuman yang matang biasanya punya tiga ciri: ringkas, runtut, dan memakai contoh. Ciri itulah yang membuat jawaban terlihat lebih siap.',
+        icon: Icons.fact_check_outlined,
+        color: colors[10],
+      ),
+      MaterialSlide(
+        title: 'Subbab 12 - Persiapan Asesmen',
+        body:
+            'Sebelum menekan selesai, pastikan kamu bisa menjawab empat hal ini: apa definisi ${concept(0)}, bagaimana hubungan ${concept(1)} dengan ${material.title}, contoh apa yang paling mudah diingat, dan kesalahan apa yang harus dihindari.\n\nUntuk persiapan ujian, buat kartu belajar berisi kata kunci di depan dan penjelasan singkat di belakang. Ulangi kartu itu sebelum latihan soal. Jika tersedia video pembelajaran atau sumber resmi dari Ruang Murid, gunakan sebagai penguat setelah membaca slide.\n\nSetelah materi selesai, beri rating pengalaman belajar 1-10 agar AHEAD dapat mencatat kualitas belajar dan membantu memilih materi berikutnya.',
+        icon: Icons.flag_circle_outlined,
+        color: colors[11],
+      ),
     ];
+  }
+
+  String _curriculumFoundationFor(MaterialItem material, SubjectItem subject) {
+    switch (subject.name) {
+      case 'Biologi':
+        return 'Landasan kurikulum: CP/Fase E kelas X IPA menempatkan Biologi pada pemahaman kehidupan, keanekaragaman hayati, ekosistem, perubahan lingkungan, serta peran makhluk hidup mikroskopis seperti virus. Materi ${material.title} disusun agar siswa mampu mengamati, mengelompokkan, menjelaskan hubungan, dan mengambil sikap terhadap masalah lingkungan atau kehidupan.';
+      case 'Kimia':
+        return 'Landasan kurikulum: CP/Fase E kelas X IPA menempatkan Kimia pada cara kerja ilmiah, struktur materi, hukum dasar, serta pemanfaatan kimia untuk kehidupan berkelanjutan. Materi ${material.title} diarahkan agar siswa memahami konsep, membaca data percobaan, dan menilai proses kimia secara aman serta bertanggung jawab.';
+      case 'Fisika':
+        return 'Landasan kurikulum: CP/Fase E kelas X IPA menempatkan Fisika pada pengukuran, model, gerak, energi, dan perubahan iklim. Materi ${material.title} disusun agar siswa mampu menghubungkan besaran, satuan, data, grafik, dan fenomena sehari-hari dengan penalaran ilmiah.';
+      case 'Sejarah':
+        return 'Landasan kurikulum: CP/Fase E kelas X IPS menempatkan Sejarah pada kemampuan memahami manusia, ruang, waktu, sumber, perubahan, keberlanjutan, dan perkembangan Indonesia. Materi ${material.title} diarahkan agar siswa dapat membaca peristiwa secara kronologis dan kritis.';
+      case 'Sosiologi':
+        return 'Landasan kurikulum: CP/Fase E kelas X IPS menempatkan Sosiologi pada pemahaman gejala sosial, identitas, tindakan, interaksi, nilai, dan norma. Materi ${material.title} membantu siswa membaca kehidupan masyarakat secara objektif, bukan hanya berdasarkan opini pribadi.';
+      case 'Ekonomi':
+        return 'Landasan kurikulum: CP/Fase E kelas X IPS menempatkan Ekonomi pada pemahaman kebutuhan, kelangkaan, pilihan, pasar, dan lembaga keuangan. Materi ${material.title} diarahkan agar siswa dapat mengambil keputusan ekonomi dengan alasan yang logis.';
+      case 'Geografi':
+        return 'Landasan kurikulum: CP/Fase E kelas X IPS menempatkan Geografi pada konsep keruangan, lingkungan, kewilayahan, peta, penginderaan jauh, dan SIG. Materi ${material.title} membantu siswa membaca fenomena geosfer melalui lokasi, pola, interaksi, dan data spasial.';
+    }
+    return 'Landasan kurikulum: materi ${material.title} disusun selaras dengan CP/Fase E kelas X agar siswa memahami konsep, contoh, data, dan penerapan.';
+  }
+
+  String _officialSourceNoteFor(SubjectItem subject) {
+    final book = subject.category == 'IPA'
+        ? 'buku IPA kelas X di SIBI/Katalog Buku Kemendikdasmen'
+        : 'buku IPS kelas X di SIBI/Katalog Buku Kemendikdasmen';
+    return 'Rujukan belajar: CP/Fase E Kemendikdasmen sebagai arah capaian, $book sebagai sumber buku resmi, dan Rumah Pendidikan - Ruang Murid sebagai referensi bahan belajar serta latihan soal. Ringkasan AHEAD dibuat sebagai pendamping, bukan pengganti sumber resmi.';
+  }
+
+  String _contextualCaseFor(MaterialItem material, SubjectItem subject) {
+    switch (subject.name) {
+      case 'Biologi':
+        return 'Contoh kontekstual Biologi dapat diambil dari lingkungan sekitar: kualitas air sungai, keberadaan tanaman lokal, perubahan populasi serangga, kesehatan tubuh, atau berita tentang penyakit. Pada ${material.title}, contoh yang baik harus menunjukkan hubungan antara makhluk hidup, lingkungan, dan perubahan yang terjadi.';
+      case 'Kimia':
+        return 'Contoh kontekstual Kimia dapat berasal dari bahan rumah tangga, label produk, limbah, makanan, obat, atau kegiatan laboratorium. Pada ${material.title}, contoh yang baik perlu menunjukkan zat yang terlibat, proses yang terjadi, risiko, dan manfaatnya.';
+      case 'Fisika':
+        return 'Contoh kontekstual Fisika dapat ditemukan pada gerak kendaraan, penggunaan listrik, panel surya, alat ukur, cuaca, dan teknologi harian. Pada ${material.title}, contoh yang baik harus menyebut besaran yang terlibat, perubahan yang diamati, dan alasan fisikanya.';
+      case 'Sejarah':
+        return 'Contoh kontekstual Sejarah dapat diambil dari arsip keluarga, cerita daerah, bangunan lama, jalur perdagangan, atau tradisi masyarakat. Pada ${material.title}, contoh yang baik harus memiliki pelaku, tempat, waktu, sumber, dan dampak.';
+      case 'Sosiologi':
+        return 'Contoh kontekstual Sosiologi dapat berasal dari interaksi kelas, komunitas, media sosial, organisasi, konflik, atau perubahan kebiasaan masyarakat. Pada ${material.title}, contoh yang baik harus menunjukkan pelaku, norma, tindakan, dan hubungan sosial.';
+      case 'Ekonomi':
+        return 'Contoh kontekstual Ekonomi dapat muncul dari uang saku, harga barang, keputusan membeli, kegiatan jual beli, tabungan, pinjaman, atau pasar sekitar. Pada ${material.title}, contoh yang baik harus menunjukkan kebutuhan, pilihan, sumber daya, dan akibat keputusan.';
+      case 'Geografi':
+        return 'Contoh kontekstual Geografi dapat diambil dari peta sekolah, banjir, penggunaan lahan, persebaran penduduk, citra satelit, atau jalur transportasi. Pada ${material.title}, contoh yang baik harus menyebut lokasi, pola, faktor penyebab, dan hubungan antarwilayah.';
+    }
+    return 'Contoh kontekstual dapat diambil dari kehidupan sekitar dengan menyebut situasi, konsep, bukti, dan simpulan.';
+  }
+
+  String _inquiryGuideFor(SubjectItem subject) {
+    if (subject.category == 'IPA') {
+      return 'Pada IPA, penalaran dibangun melalui pengamatan, pengukuran, hipotesis, variabel, eksperimen, dan kesimpulan. Siswa perlu membedakan data hasil pengamatan dari dugaan. Kesimpulan harus mengikuti bukti, bukan keinginan jawaban.';
+    }
+    return 'Pada IPS, penalaran dibangun melalui pembacaan sumber, data sosial, peta, kronologi, grafik, atau kasus masyarakat. Siswa perlu membedakan fakta, pendapat, interpretasi, dan kepentingan sumber agar kesimpulan lebih adil.';
+  }
+
+  String _practiceGuideFor(SubjectItem subject) {
+    if (subject.category == 'IPA') {
+      return 'Latihan yang sesuai untuk IPA adalah soal berbasis data, gambar, percobaan, tabel, grafik, dan kasus lingkungan. Model seperti ini sejalan dengan pembelajaran Ruang Murid yang menekankan pendalaman materi serta latihan soal bertahap.';
+    }
+    return 'Latihan yang sesuai untuk IPS adalah soal berbasis teks sumber, kasus sosial, data ekonomi, peta, kronologi, dan analisis sebab-akibat. Model seperti ini sejalan dengan pembelajaran Ruang Murid yang membantu siswa belajar mandiri dan mendapat penguatan konsep.';
   }
 
   void openMaterial(MaterialItem item) {
