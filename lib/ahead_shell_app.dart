@@ -344,32 +344,24 @@ class ExamScheduleItem {
 String formatScheduleCountdown(Duration remaining) {
   final late = remaining.isNegative;
   final duration = late ? -remaining : remaining;
-  final prefix = late ? 'Lewat ' : '';
-  if (duration.inDays >= 30) {
-    final months = duration.inDays ~/ 30;
-    final weeks = (duration.inDays % 30) ~/ 7;
-    return '$prefix$months bulan${weeks > 0 ? ' $weeks minggu' : ''}';
-  }
-  if (duration.inDays >= 7) {
-    final weeks = duration.inDays ~/ 7;
-    final days = duration.inDays % 7;
-    return '$prefix$weeks minggu${days > 0 ? ' $days hari' : ''}';
-  }
-  if (duration.inDays >= 1) {
-    final hours = duration.inHours % 24;
-    return '$prefix${duration.inDays} hari${hours > 0 ? ' $hours jam' : ''}';
-  }
-  if (duration.inHours >= 1) {
-    final minutes = duration.inMinutes % 60;
-    return '$prefix${duration.inHours} jam${minutes > 0 ? ' $minutes menit' : ''}';
-  }
-  if (duration.inMinutes >= 1) {
-    final seconds = duration.inSeconds % 60;
-    return '$prefix${duration.inMinutes} menit${seconds > 0 ? ' $seconds detik' : ''}';
-  }
-  return late
-      ? 'Lewat ${duration.inSeconds} detik'
-      : '${duration.inSeconds} detik lagi';
+  final totalDays = duration.inDays;
+  final months = totalDays ~/ 30;
+  final weeks = (totalDays % 30) ~/ 7;
+  final days = totalDays % 7;
+  final hours = duration.inHours % 24;
+  final minutes = duration.inMinutes % 60;
+  final seconds = duration.inSeconds % 60;
+  final parts = <String>[];
+
+  if (months > 0) parts.add('$months bulan');
+  if (weeks > 0) parts.add('$weeks minggu');
+  if (days > 0) parts.add('$days hari');
+  if (hours > 0 || parts.isNotEmpty) parts.add('$hours jam');
+  if (minutes > 0 || parts.isNotEmpty) parts.add('$minutes menit');
+  parts.add('$seconds detik');
+
+  final text = parts.join(' ');
+  return late ? 'Lewat $text' : '$text lagi';
 }
 
 class StudyPlanItem {
@@ -7516,8 +7508,25 @@ class _LiveScheduleCountdownPillState extends State<LiveScheduleCountdownPill> {
 
   @override
   Widget build(BuildContext context) {
-    return AheadPill(widget.schedule.liveCountdownLabel, widget.color,
-        textColor: widget.textColor);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 210),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+            color: widget.color, borderRadius: BorderRadius.circular(18)),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            widget.schedule.liveCountdownLabel,
+            maxLines: 1,
+            style: TextStyle(
+                color: widget.textColor ?? AheadColors.navy,
+                fontSize: 12,
+                fontWeight: FontWeight.w800),
+          ),
+        ),
+      ),
+    );
   }
 }
 
