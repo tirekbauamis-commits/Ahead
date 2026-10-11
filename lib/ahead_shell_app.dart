@@ -2293,15 +2293,15 @@ class AheadStore {
     String c(int index) => _cap(concepts[index % concepts.length]);
     return [
       'Pengertian ${material.title}',
-      '$c(0) dalam ${subject.name}',
-      'Hubungan $c(1) dan $c(2)',
-      'Ciri Penting $c(3)',
+      '${c(0)} dalam ${subject.name}',
+      'Hubungan ${c(1)} dan ${c(2)}',
+      'Ciri Penting ${c(3)}',
       'Contoh ${material.title} di Sekitar Siswa',
       'Data dan Bukti pada ${subject.name}',
-      'Proses Terjadinya $c(1)',
+      'Proses Terjadinya ${c(1)}',
       'Pendalaman dari Buku SIBI',
       'Latihan Soal ${material.title}',
-      'Perbedaan $c(2) dan $c(3)',
+      'Perbedaan ${c(2)} dan ${c(3)}',
       'Rangkuman ${material.title}',
       'Refleksi Belajar ${material.title}',
     ];
@@ -8054,6 +8054,7 @@ class MaterialSlideDeck extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final imageHeight = MediaQuery.sizeOf(context).width >= 700 ? 180.0 : 150.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -8133,20 +8134,24 @@ class MaterialSlideDeck extends StatelessWidget {
                           const SizedBox(height: 16),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(16),
-                            child: AspectRatio(
-                              aspectRatio: 16 / 7,
+                            child: Container(
+                              height: imageHeight,
+                              width: double.infinity,
+                              color: dark
+                                  ? const Color(0xFF1F2937)
+                                  : Colors.white.withValues(alpha: .74),
+                              alignment: Alignment.center,
                               child: Image.network(
                                 slide.imageUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                  color: dark
-                                      ? const Color(0xFF1F2937)
-                                      : Colors.white.withValues(alpha: .62),
-                                  alignment: Alignment.center,
-                                  child: const Text(
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => const Center(
+                                  child: Text(
                                     'Gambar rujukan belum dapat dimuat',
-                                    style:
-                                        TextStyle(color: AheadColors.muted),
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: AheadColors.muted,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
                               ),
