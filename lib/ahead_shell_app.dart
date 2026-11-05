@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import 'account_storage_stub.dart'
     if (dart.library.html) 'account_storage_web.dart'
@@ -29,6 +30,44 @@ class AheadShellApp extends StatelessWidget {
         return MaterialApp(
           title: 'AHEAD',
           debugShowCheckedModeBanner: false,
+          builder: (context, child) {
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                const appMaxWidth = 480.0;
+                final appWidth = constraints.maxWidth.clamp(0.0, appMaxWidth);
+                final isDesktopPreview = constraints.maxWidth > appMaxWidth;
+                final media = MediaQuery.of(context);
+                return ColoredBox(
+                  color:
+                      isDesktopPreview ? const Color(0xFFE7EDF6) : Colors.white,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: appMaxWidth),
+                      child: MediaQuery(
+                        data: media.copyWith(
+                          size: Size(appWidth, constraints.maxHeight),
+                        ),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            boxShadow: isDesktopPreview
+                                ? const [
+                                    BoxShadow(
+                                      color: Color(0x140B1F3A),
+                                      blurRadius: 28,
+                                      offset: Offset(0, 0),
+                                    ),
+                                  ]
+                                : const [],
+                          ),
+                          child: child ?? const SizedBox.shrink(),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
           theme: _appTheme(Brightness.light),
           darkTheme: _appTheme(Brightness.dark),
           themeMode: mode,
@@ -104,6 +143,9 @@ class AheadUser {
   String major;
   String provider;
   String? photoUrl;
+  bool hasPendingSync = false;
+  int stateRevision = 0;
+  String? lastSyncedAt;
 
   final Map<int, int> materialProgress = {};
   final Map<int, int> materialRatings = {};
@@ -180,22 +222,25 @@ class MaterialItem {
   final String classLevel;
 }
 
+// Isi map dengan ID video YouTube. Kunci memakai material.id * 100 + indeks slide.
+const Map<int, String> materialYoutubeVideoIds = <int, String>{};
+
 class MaterialSlide {
   const MaterialSlide({
     required this.title,
     required this.body,
     required this.icon,
     required this.color,
-    this.imageUrl,
-    this.imageCaption,
+    this.youtubeVideoId,
+    this.videoCaption,
   });
 
   final String title;
   final String body;
   final IconData icon;
   final Color color;
-  final String? imageUrl;
-  final String? imageCaption;
+  final String? youtubeVideoId;
+  final String? videoCaption;
 }
 
 class QuestionItem {
@@ -1122,7 +1167,8 @@ class AheadStore {
     const ExamItem(
       id: 7,
       title: 'Simulasi UTS Kimia Kelas X',
-      description: 'Kimia hijau, metode ilmiah, struktur atom, dan dasar reaksi.',
+      description:
+          'Kimia hijau, metode ilmiah, struktur atom, dan dasar reaksi.',
       type: 'UTS',
       durationMinutes: 45,
       totalQuestions: 20,
@@ -1131,7 +1177,8 @@ class AheadStore {
     const ExamItem(
       id: 8,
       title: 'Simulasi UAS Kimia Kelas X',
-      description: 'Evaluasi akhir kimia kelas X dari konsep dasar sampai hukum kimia.',
+      description:
+          'Evaluasi akhir kimia kelas X dari konsep dasar sampai hukum kimia.',
       type: 'UAS',
       durationMinutes: 90,
       totalQuestions: 20,
@@ -1140,7 +1187,8 @@ class AheadStore {
     const ExamItem(
       id: 9,
       title: 'Simulasi UTS Fisika Kelas X',
-      description: 'Pengukuran, metode ilmiah, energi, gerak, dan pemanasan global.',
+      description:
+          'Pengukuran, metode ilmiah, energi, gerak, dan pemanasan global.',
       type: 'UTS',
       durationMinutes: 45,
       totalQuestions: 20,
@@ -1158,7 +1206,8 @@ class AheadStore {
     const ExamItem(
       id: 11,
       title: 'Simulasi UTS Sejarah Kelas X',
-      description: 'Pengantar sejarah, manusia, ruang, waktu, dan sumber sejarah.',
+      description:
+          'Pengantar sejarah, manusia, ruang, waktu, dan sumber sejarah.',
       type: 'UTS',
       durationMinutes: 45,
       totalQuestions: 20,
@@ -1167,7 +1216,8 @@ class AheadStore {
     const ExamItem(
       id: 12,
       title: 'Simulasi UAS Sejarah Kelas X',
-      description: 'Ujian akhir sejarah dari konsep dasar sampai Indonesia awal.',
+      description:
+          'Ujian akhir sejarah dari konsep dasar sampai Indonesia awal.',
       type: 'UAS',
       durationMinutes: 90,
       totalQuestions: 20,
@@ -1176,7 +1226,8 @@ class AheadStore {
     const ExamItem(
       id: 13,
       title: 'Simulasi UTS Sosiologi Kelas X',
-      description: 'Gejala sosial, identitas, tindakan sosial, dan interaksi sosial.',
+      description:
+          'Gejala sosial, identitas, tindakan sosial, dan interaksi sosial.',
       type: 'UTS',
       durationMinutes: 45,
       totalQuestions: 20,
@@ -1185,7 +1236,8 @@ class AheadStore {
     const ExamItem(
       id: 14,
       title: 'Simulasi UAS Sosiologi Kelas X',
-      description: 'Evaluasi akhir sosiologi kelas X dengan kasus sosial masyarakat.',
+      description:
+          'Evaluasi akhir sosiologi kelas X dengan kasus sosial masyarakat.',
       type: 'UAS',
       durationMinutes: 90,
       totalQuestions: 20,
@@ -1194,7 +1246,8 @@ class AheadStore {
     const ExamItem(
       id: 15,
       title: 'Simulasi UAS Ekonomi Kelas X',
-      description: 'Ujian akhir ekonomi tentang kebutuhan, pasar, dan lembaga keuangan.',
+      description:
+          'Ujian akhir ekonomi tentang kebutuhan, pasar, dan lembaga keuangan.',
       type: 'UAS',
       durationMinutes: 90,
       totalQuestions: 20,
@@ -1253,20 +1306,109 @@ class AheadStore {
 
   void persistNow() => _queueSave();
 
-  void _queueSave() {
-    if (!_loaded) return;
-    revision.value++;
-    unawaited(_save());
-  }
+  Future<void> _saveTail = Future<void>.value();
+  Timer? _remoteSyncTimer;
+  Future<void> _remoteSyncTail = Future<void>.value();
 
-  Future<void> _save() async {
-    final data = {
+  void _queueSave({bool markDirty = true}) {
+    if (!_loaded) return;
+    final user = currentUser;
+    if (markDirty && user != null) {
+      user.hasPendingSync = true;
+      user.stateRevision++;
+    }
+    revision.value++;
+    final snapshot = jsonEncode({
       'version': 2,
       'nextUserId': _nextUserId,
       'themeMode': _themeModeName,
       'users': _users.map(_userToJson).toList(),
-    };
-    await _storage.write(jsonEncode(data));
+    });
+    _saveTail = _saveTail.then<void>(
+      (_) => _storage.write(snapshot),
+      onError: (Object _) => _storage.write(snapshot),
+    );
+    final token = _authToken;
+    if (markDirty &&
+        user != null &&
+        user.hasPendingSync &&
+        token != null &&
+        token.isNotEmpty) {
+      _scheduleRemoteSync(user, token);
+    }
+  }
+
+  void _scheduleRemoteSync(AheadUser user, String token) {
+    _remoteSyncTimer?.cancel();
+    _remoteSyncTimer = Timer(const Duration(milliseconds: 800), () {
+      _remoteSyncTail = _remoteSyncTail.then<void>(
+        (_) => _pushUserStateToApi(user, token),
+      );
+    });
+  }
+
+  Future<void> _flushRemoteSync(AheadUser user, String token) async {
+    _remoteSyncTimer?.cancel();
+    _remoteSyncTimer = null;
+    _remoteSyncTail = _remoteSyncTail.then<void>(
+      (_) => _pushUserStateToApi(user, token),
+    );
+    await _remoteSyncTail;
+  }
+
+  Future<void> _syncAccountStateWithApi() async {
+    final token = _authToken;
+    final user = currentUser;
+    if (token == null || token.isEmpty || user == null) return;
+    try {
+      final response = await _api.get('/state', token: token);
+      final remoteState = _asMap(response['data']);
+      if (remoteState.isEmpty || user.hasPendingSync) {
+        await _pushUserStateToApi(user, token);
+        return;
+      }
+      final restored = _userFromJson({
+        ...remoteState,
+        'id': user.id,
+        'email': remoteState['email'] ?? user.email,
+        'passwordDigest': user.passwordDigest,
+      });
+      restored.examSchedules.addAll(user.examSchedules);
+      restored.hasPendingSync = false;
+      restored.lastSyncedAt = _nullableString(response['updatedAt']);
+      final userIndex = _users.indexWhere((item) => identical(item, user));
+      if (userIndex >= 0) _users[userIndex] = restored;
+      currentUser = restored;
+      _queueSave(markDirty: false);
+    } catch (_) {
+      // Cache lokal tetap dipakai saat jaringan atau API tidak tersedia.
+    }
+  }
+
+  Future<void> _pushUserStateToApi(AheadUser user, String token) async {
+    if (!user.hasPendingSync) return;
+    final revisionAtSend = user.stateRevision;
+    final state = Map<String, Object?>.from(_userToJson(user))
+      ..remove('id')
+      ..remove('passwordDigest')
+      ..remove('hasPendingSync')
+      ..remove('stateRevision')
+      ..remove('lastSyncedAt')
+      ..remove('examSchedules');
+    try {
+      final response = await _api.post(
+        '/state',
+        {'state': state},
+        token: token,
+      );
+      if (user.stateRevision == revisionAtSend) {
+        user.hasPendingSync = false;
+        user.lastSyncedAt = _nullableString(response['updatedAt']);
+        _queueSave(markDirty: false);
+      }
+    } catch (_) {
+      // Perubahan tetap ditandai tertunda dan dicoba lagi saat tersambung.
+    }
   }
 
   Map<String, Object?> _userToJson(AheadUser user) => {
@@ -1278,6 +1420,9 @@ class AheadStore {
         'major': user.major,
         'provider': user.provider,
         'photoUrl': user.photoUrl,
+        'hasPendingSync': user.hasPendingSync,
+        'stateRevision': user.stateRevision,
+        'lastSyncedAt': user.lastSyncedAt,
         'materialProgress':
             user.materialProgress.map((key, value) => MapEntry('$key', value)),
         'materialRatings':
@@ -1304,6 +1449,9 @@ class AheadStore {
       provider: _asString(json['provider'], 'email'),
       photoUrl: _nullableString(json['photoUrl']),
     );
+    user.hasPendingSync = json['hasPendingSync'] == true;
+    user.stateRevision = _asInt(json['stateRevision']);
+    user.lastSyncedAt = _nullableString(json['lastSyncedAt']);
     user.materialProgress.addAll(_intIntMap(json['materialProgress']));
     user.materialRatings.addAll(_intIntMap(json['materialRatings']));
     user.savedMaterialIds.addAll(_asList(json['savedMaterialIds'])
@@ -1584,7 +1732,7 @@ class AheadStore {
           await _pushScheduleToApi(item);
         }
       }
-      _queueSave();
+      _queueSave(markDirty: false);
     } catch (_) {
       // Jadwal tetap tersimpan lokal saat API belum siap.
     }
@@ -1781,8 +1929,10 @@ class AheadStore {
       final user = _upsertApiUser(_asMap(response['user']), password: password);
       _authToken = _asString(response['token']);
       currentUser = user;
-      user.history.add('Login pada ${_shortDate(DateTime.now())}');
       await _syncSchedulesWithApi();
+      await _syncAccountStateWithApi();
+      final activeUser = currentUser ?? user;
+      activeUser.history.add('Login pada ${_shortDate(DateTime.now())}');
       _queueSave();
       return null;
     } catch (error) {
@@ -1816,8 +1966,10 @@ class AheadStore {
       final user = _upsertApiUser(_asMap(response['user']));
       _authToken = _asString(response['token']);
       currentUser = user;
-      user.history.add('Login Google pada ${_shortDate(DateTime.now())}');
       await _syncSchedulesWithApi();
+      await _syncAccountStateWithApi();
+      final activeUser = currentUser ?? user;
+      activeUser.history.add('Login Google pada ${_shortDate(DateTime.now())}');
       _queueSave();
       return null;
     } catch (error) {
@@ -1962,16 +2114,32 @@ class AheadStore {
     final user = matches.first;
     if (user.passwordDigest != _digest(normalizedEmail, password))
       return 'Password salah.';
+    _authToken = null;
     currentUser = user;
     user.history.add('Login pada ${_shortDate(DateTime.now())}');
     _queueSave();
     return null;
   }
 
-  void logout() {
+  Future<void> logout() async {
+    final user = currentUser;
+    final token = _authToken;
+    if (user != null) {
+      _queueSave();
+      await _saveTail;
+      if (token != null && token.isNotEmpty) {
+        await _flushRemoteSync(user, token);
+        try {
+          await _api.post('/auth/logout', const {}, token: token);
+        } catch (_) {
+          // Penghapusan token server tidak menghalangi logout lokal.
+        }
+      }
+    }
     _authToken = null;
     currentUser = null;
-    _queueSave();
+    _queueSave(markDirty: false);
+    await _saveTail;
   }
 
   bool _validPassword(String password) {
@@ -2050,11 +2218,9 @@ class AheadStore {
       final materialQuestions =
           pool.where((item) => item.materialId == materialId).toList();
       if (materialQuestions.isEmpty) continue;
-      final offset = (exam.id + materialId + selected.length) %
-          materialQuestions.length;
-      for (var i = 0;
-          i < perMaterial && selected.length < target;
-          i++) {
+      final offset =
+          (exam.id + materialId + selected.length) % materialQuestions.length;
+      for (var i = 0; i < perMaterial && selected.length < target; i++) {
         final question =
             materialQuestions[(offset + i) % materialQuestions.length];
         if (used.add(question.id)) selected.add(question);
@@ -2128,7 +2294,7 @@ class AheadStore {
     return upcoming.firstOrNull;
   }
 
-  void saveSchedule(ExamScheduleItem item) {
+  Future<void> saveSchedule(ExamScheduleItem item) async {
     final user = currentUser;
     if (user == null) return;
     final index = user.examSchedules.indexWhere((entry) => entry.id == item.id);
@@ -2144,17 +2310,19 @@ class AheadStore {
       '${item.title} untuk ${subjectById(item.subjectId).name} ${item.dayLabel}.',
       DateTime.now(),
     ));
-    unawaited(_pushScheduleToApi(item));
     _queueSave();
+    await _saveTail;
+    unawaited(_pushScheduleToApi(item).catchError((_) {}));
   }
 
-  void deleteSchedule(ExamScheduleItem item) {
+  Future<void> deleteSchedule(ExamScheduleItem item) async {
     final user = currentUser;
     if (user == null) return;
     user.examSchedules.removeWhere((entry) => entry.id == item.id);
     user.history.add('Menghapus jadwal ${item.title}');
-    unawaited(_deleteScheduleFromApi(item));
     _queueSave();
+    await _saveTail;
+    unawaited(_deleteScheduleFromApi(item).catchError((_) {}));
   }
 
   int readinessForSubject(int subjectId) {
@@ -2255,11 +2423,11 @@ class AheadStore {
       '$contextualCase\n\nContoh nyata membuat materi lebih hidup. Pilih satu contoh yang dekat dengan kehidupan siswa, lalu hubungkan dengan ${concept(0)}, ${concept(1)}, dan ${concept(2)}. Contoh yang kuat harus punya konteks yang jelas, bukti yang bisa ditunjukkan, dan alasan yang nyambung dengan materi.\n\nJika contohmu berasal dari lingkungan sekitar, tulis apa yang diamati, siapa atau apa yang terlibat, perubahan apa yang terjadi, lalu konsep mana yang paling tepat untuk menjelaskannya.',
       '$inquiryGuide\n\nUntuk ${material.title}, bukti dapat berupa gambar, tabel, grafik, teks sumber, peta, hasil pengamatan, hasil percobaan, atau kasus kehidupan sehari-hari. Bukti dipakai agar jawaban tidak hanya berupa pendapat.\n\nGunakan pola berpikir ini: amati data, tandai kata kunci, hubungkan dengan konsep, lalu buat simpulan. Jika data tidak cocok dengan dugaan awal, ubah simpulanmu. Jawaban yang baik mengikuti bukti, bukan memaksa bukti mengikuti jawaban.',
       'Pada ${subject.name}, materi ${material.title} akan lebih kuat jika kamu bisa menjelaskan prosesnya. Proses berarti urutan kejadian atau hubungan yang membuat suatu konsep bekerja. Mulailah dari ${concept(0)}, lanjutkan ke ${concept(1)}, lalu lihat bagaimana ${concept(2)} dan ${concept(3)} muncul dalam pembahasan.\n\nBuat alur pendek di catatan: awal masalah, konsep yang terlibat, proses utama, dampak, dan kesimpulan. Alur ini berguna untuk soal essay karena jawaban tidak melompat-lompat. Untuk pilihan ganda, alur membantu menyingkirkan opsi yang kelihatannya benar tetapi tidak sesuai urutan.',
-      'Di SIBI/Katalog Buku Kemendikdasmen, materi pelajaran biasanya disusun dari pemantik, uraian konsep, aktivitas, dan refleksi. Saat mempelajari ${material.title}, cocokkan catatan AHEAD dengan buku resmi: apakah definisi ${concept(0)} sudah sama, apakah contoh ${concept(1)} sudah lengkap, dan apakah ada gambar atau aktivitas yang bisa memperjelas materi.\n\nJangan berhenti di ringkasan. Baca juga ilustrasi, tabel, peta konsep, atau kegiatan mandiri pada buku. Bagian seperti itu sering membantu memahami konsep yang sulit karena memperlihatkan materi dalam bentuk visual atau aktivitas.',
+      'Untuk memeriksa ${material.title}, cari buku ${subject.name} kelas ${material.classLevel} pada Katalog Buku SIBI. Cocokkan istilah ${concept(0)}, contoh ${concept(1)}, dan urutan konsep dengan ringkasan AHEAD. Gunakan Panduan Mata Pelajaran Kemendikdasmen untuk melihat capaian pembelajaran yang menjadi acuan topik. Penguatan bahan belajar dan latihan soal merujuk Rumah Pendidikan – Ruang Murid. Ketiga rujukan tersebut menjadi acuan isi materi AHEAD, bukan tautan untuk keluar dari aplikasi.\n\nRingkasan AHEAD bukan pengganti buku resmi. Baca uraian, ilustrasi, tabel, dan kegiatan mandiri pada buku yang tersedia agar pemahamanmu mengikuti konteks materi dan edisi yang digunakan sekolah.',
       '$practiceGuide\n\nUntuk pilihan ganda, baca pertanyaan sampai akhir, garis bawahi kata kunci, lalu cocokkan dengan konsep. Jika pilihan jawaban menyebut ${concept(0)} tetapi alasannya tidak sesuai, pilihan itu belum tentu benar. Untuk essay, gunakan struktur: pengertian, hubungan konsep, contoh, dan kesimpulan.\n\nLatihan mandiri: buat satu soal tentang ${material.title}, lalu jawab sendiri. Setelah itu cek apakah jawabanmu sudah menyebut konsep, bukti, dan contoh.',
       'Konsep yang sering tertukar dalam materi ini adalah ${concept(2)} dan ${concept(3)}. Keduanya bisa muncul dalam topik yang sama, tetapi fungsi penjelasannya berbeda. ${_cap(concept(2))} biasanya dipakai untuk membaca bagian tertentu dari materi, sedangkan ${concept(3)} sering dipakai saat menjelaskan alasan atau dampak.\n\nKesalahan lain adalah menjawab terlalu umum, tidak memberi contoh, atau memakai istilah tanpa menjelaskan maknanya. Untuk menghindarinya, selalu tambahkan satu kalimat alasan setelah menyebut istilah.',
       'Rangkuman ${material.title}: ${material.description}. Kata kunci yang perlu kamu kuasai adalah ${concept(0)}, ${concept(1)}, ${concept(2)}, ${concept(3)}, dan ${concept(4)}. Kelima kata ini bukan daftar hafalan, tetapi jalur untuk menjelaskan materi secara runtut.\n\nRangkuman yang baik memuat pengertian, proses, contoh, dampak, dan kesimpulan. Coba jelaskan materi ini selama satu menit tanpa melihat catatan. Jika masih berhenti terlalu lama, ulangi bagian konsep yang paling sulit.',
-      'Sebelum menyelesaikan materi, pastikan kamu bisa menjawab empat hal: apa pengertian ${concept(0)}, bagaimana hubungan ${concept(1)} dengan ${material.title}, contoh apa yang paling mudah diingat, dan kesalahan apa yang harus dihindari.\n\nSetelah itu, tulis refleksi pendek: bagian mana yang sudah paham, bagian mana yang masih sulit, dan sumber resmi apa yang perlu dibuka lagi. Jika tersedia video atau artikel dari Ruang Murid, gunakan sebagai penguat supaya materi tidak hanya dibaca, tetapi juga dilihat melalui contoh visual.',
+      'Sebelum menyelesaikan materi, pastikan kamu bisa menjawab empat hal: apa pengertian ${concept(0)}, bagaimana hubungan ${concept(1)} dengan ${material.title}, contoh apa yang paling mudah diingat, dan kesalahan apa yang harus dihindari.\n\nSetelah itu, tulis refleksi pendek: bagian mana yang sudah paham, bagian mana yang masih sulit, dan sumber resmi apa yang perlu dibuka lagi. Gunakan kurikulum Kemendikdasmen sebagai acuan capaian, buku SIBI/Katalog Buku Kemendikdasmen sebagai rujukan isi, serta Rumah Pendidikan – Ruang Murid sebagai referensi bahan belajar dan latihan soal.',
     ];
     const icons = [
       Icons.menu_book_outlined,
@@ -2282,8 +2450,8 @@ class AheadStore {
         body: bodies[index],
         icon: icons[index],
         color: colors[index],
-        imageUrl: _officialImageFor(subject, index),
-        imageCaption: _officialImageCaption(subject, index),
+        youtubeVideoId: materialYoutubeVideoIds[material.id * 100 + index],
+        videoCaption: 'Video pembelajaran untuk topik ini akan ditambahkan.',
       );
     });
   }
@@ -2299,7 +2467,7 @@ class AheadStore {
       'Contoh ${material.title} di Sekitar Siswa',
       'Data dan Bukti pada ${subject.name}',
       'Proses Terjadinya ${c(1)}',
-      'Pendalaman dari Buku SIBI',
+      'Kurikulum, Buku, dan Bahan Resmi',
       'Latihan Soal ${material.title}',
       'Perbedaan ${c(2)} dan ${c(3)}',
       'Rangkuman ${material.title}',
@@ -2314,36 +2482,6 @@ class AheadStore {
             ? word
             : '${word[0].toUpperCase()}${word.substring(1)}')
         .join(' ');
-  }
-
-  String _officialImageFor(SubjectItem subject, int index) {
-    const ruangMuridDesktop =
-        'https://pusatinformasi.rumahpendidikan.kemendikdasmen.go.id/hc/article_attachments/54200054367513';
-    const ruangMuridUnits =
-        'https://pusatinformasi.rumahpendidikan.kemendikdasmen.go.id/hc/article_attachments/52475178541721';
-    const ruangMuridMaterial =
-        'https://pusatinformasi.rumahpendidikan.kemendikdasmen.go.id/hc/article_attachments/52475247453977';
-    const ruangMuridIcon =
-        'https://rumah.pendidikan.go.id/api/upload/rumah-pendidikan-production/room-icon/iconruangmuridcolour2x-30_db909fa0-965c-4a00-9cc0-b6a417111279.png';
-    if (subject.category == 'IPA') {
-      return [ruangMuridUnits, ruangMuridMaterial, ruangMuridDesktop][index % 3];
-    }
-    return [
-      ruangMuridDesktop,
-      ruangMuridMaterial,
-      ruangMuridUnits,
-      ruangMuridIcon
-    ][index % 4];
-  }
-
-  String _officialImageCaption(SubjectItem subject, int index) {
-    if (index % 3 == 0) {
-      return 'Visual referensi resmi Sumber Belajar Ruang Murid.';
-    }
-    if (index % 3 == 1) {
-      return 'Contoh tampilan materi digital dari Rumah Pendidikan.';
-    }
-    return 'Rujukan pendamping: SIBI/Katalog Buku dan Ruang Murid.';
   }
 
   String _contextualCaseFor(MaterialItem material, SubjectItem subject) {
@@ -3295,14 +3433,11 @@ class _MainShellState extends State<MainShell> {
       const ExamPage(),
       ProfilePage(onTab: (value) => setState(() => index = value)),
     ];
-    final titles = ['Beranda', 'Belajar', 'Latihan', 'Ujian', 'Profil'];
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
-            AheadTopBar(
-                title: titles[index],
-                onProfile: () => setState(() => index = 4)),
+            const AheadTopBar(),
             Expanded(child: pages[index]),
           ],
         ),
@@ -3658,8 +3793,9 @@ class ProfilePage extends StatelessWidget {
         SizedBox(
           height: 64,
           child: ElevatedButton.icon(
-            onPressed: () {
-              aheadStore.logout();
+            onPressed: () async {
+              await aheadStore.logout();
+              if (!context.mounted) return;
               Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -3716,6 +3852,7 @@ class _MaterialDetailPageState extends State<MaterialDetailPage> {
     final rating = user.materialRatings[widget.material.id];
     return DetailScaffold(
       title: widget.material.title,
+      showBackButton: false,
       child: AheadScroll(
         children: [
           MaterialSlideDeck(
@@ -4040,6 +4177,8 @@ class _PracticeQuestionPageState extends State<PracticeQuestionPage> {
         '${remaining ~/ 60}:${(remaining % 60).toString().padLeft(2, '0')}';
     return DetailScaffold(
       title: 'Latihan',
+      showBackButton: false,
+      canPop: false,
       child: AheadScroll(
         children: [
           Row(
@@ -4361,6 +4500,8 @@ class _ExamQuestionPageState extends State<ExamQuestionPage> {
     final question = questions[index];
     return DetailScaffold(
       title: 'Pengerjaan Ujian',
+      showBackButton: false,
+      canPop: false,
       child: AheadScroll(
         children: [
           Row(
@@ -4831,9 +4972,9 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
               onPressed: () => Navigator.pop(context),
               child: const Text('Batal')),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
               if (title.text.trim().isNotEmpty) {
-                aheadStore.saveSchedule(ExamScheduleItem(
+                await aheadStore.saveSchedule(ExamScheduleItem(
                   id: existing?.id ??
                       'schedule-${DateTime.now().microsecondsSinceEpoch}',
                   title: title.text.trim(),
@@ -4842,8 +4983,10 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                   date: selectedDate,
                   notes: notes.text.trim(),
                 ));
+                if (!mounted || !context.mounted) return;
                 setState(() {});
               }
+              if (!context.mounted) return;
               Navigator.pop(context);
             },
             child: const Text('Simpan'),
@@ -4864,8 +5007,9 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
               onPressed: () => Navigator.pop(context),
               child: const Text('Batal')),
           FilledButton(
-            onPressed: () {
-              aheadStore.deleteSchedule(schedule);
+            onPressed: () async {
+              await aheadStore.deleteSchedule(schedule);
+              if (!context.mounted) return;
               setState(() {});
               Navigator.pop(context);
             },
@@ -5221,36 +5365,50 @@ class _AiPageState extends State<AiPage> {
 }
 
 class DetailScaffold extends StatelessWidget {
-  const DetailScaffold(
-      {super.key, required this.title, required this.child, this.action});
+  const DetailScaffold({
+    super.key,
+    required this.title,
+    required this.child,
+    this.action,
+    this.showBackButton = true,
+    this.canPop = true,
+  });
 
   final String title;
   final Widget child;
   final Widget? action;
+  final bool showBackButton;
+  final bool canPop;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 14, 8),
-              child: Row(
-                children: [
-                  IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back_rounded)),
-                  Expanded(
-                      child: Text(title,
-                          style: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.w900))),
-                  if (action != null) action!,
-                ],
+    return PopScope(
+      canPop: canPop,
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 10, 14, 8),
+                child: Row(
+                  children: [
+                    if (showBackButton)
+                      IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.arrow_back_rounded))
+                    else
+                      const SizedBox(width: 8),
+                    Expanded(
+                        child: Text(title,
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.w900))),
+                    if (action != null) action!,
+                  ],
+                ),
               ),
-            ),
-            Expanded(child: child),
-          ],
+              Expanded(child: child),
+            ],
+          ),
         ),
       ),
     );
@@ -5258,70 +5416,82 @@ class DetailScaffold extends StatelessWidget {
 }
 
 class AheadTopBar extends StatelessWidget {
-  const AheadTopBar(
-      {super.key, required this.title, this.onBack, required this.onProfile});
+  /// Legacy inputs remain accepted, but the global header intentionally omits them.
+  const AheadTopBar({super.key, this.title, this.onProfile});
 
-  final String title;
-  final VoidCallback? onBack;
-  final VoidCallback onProfile;
+  final String? title;
+  final VoidCallback? onProfile;
 
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 12, 10),
-      decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          border: const Border(bottom: BorderSide(color: Color(0x08000000)))),
-      child: Row(
-        children: [
-          if (onBack == null)
-            const AheadLogo(size: 30)
-          else
-            IconButton(
-              tooltip: 'Kembali',
-              onPressed: onBack,
-              icon: Icon(Icons.arrow_back_rounded,
-                  color: dark ? Colors.white : AheadColors.navy),
-              style: IconButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(34, 34),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 380;
+        final actionSize = compact ? 40.0 : 44.0;
+        final actionConstraints = BoxConstraints.tightFor(
+          width: actionSize,
+          height: actionSize,
+        );
+        final iconButtonStyle = IconButton.styleFrom(
+          minimumSize: Size(actionSize, actionSize),
+          maximumSize: Size(actionSize, actionSize),
+          padding: EdgeInsets.zero,
+          visualDensity: VisualDensity.compact,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        );
+
+        return Container(
+          padding: EdgeInsets.fromLTRB(
+            compact ? 12 : 16,
+            compact ? 8 : 12,
+            compact ? 8 : 12,
+            compact ? 8 : 10,
+          ),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            border: const Border(bottom: BorderSide(color: Color(0x08000000))),
+          ),
+          child: Row(
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AheadLogo(size: compact ? 26 : 30, showText: false),
+                  SizedBox(width: compact ? 6 : 7),
+                  Text(
+                    'AHEAD',
+                    style: TextStyle(
+                      fontSize: compact ? 16 : 19,
+                      fontWeight: FontWeight.w900,
+                      color: dark ? Colors.white : AheadColors.navy,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: dark ? const Color(0xFF243043) : AheadColors.softBlue,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(title,
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: dark ? Colors.white : AheadColors.blue)),
+              const Spacer(),
+              IconButton(
+                tooltip: dark ? 'Mode siang' : 'Mode malam',
+                onPressed: aheadStore.toggleThemeMode,
+                constraints: actionConstraints,
+                style: iconButtonStyle,
+                icon: Icon(
+                  dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                  size: 21,
+                ),
+              ),
+              SizedBox(width: compact ? 0 : 2),
+              IconButton(
+                tooltip: 'Notifikasi',
+                onPressed: () => openPage(context, const NotificationsPage()),
+                constraints: actionConstraints,
+                style: iconButtonStyle,
+                icon: const Icon(Icons.notifications_none_rounded, size: 21),
+              ),
+            ],
           ),
-          const Spacer(),
-          IconButton(
-              tooltip: dark ? 'Mode siang' : 'Mode malam',
-              onPressed: aheadStore.toggleThemeMode,
-              icon: Icon(
-                  dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined)),
-          IconButton(
-              onPressed: () => openPage(context, const NotificationsPage()),
-              icon: const Icon(Icons.notifications_none_rounded)),
-          FilledButton(
-            onPressed: onProfile,
-            style: FilledButton.styleFrom(
-                shape: const CircleBorder(),
-                padding: const EdgeInsets.all(12),
-                backgroundColor: AheadColors.blue),
-            child:
-                const Icon(Icons.person_outline_rounded, color: Colors.white),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -5347,42 +5517,56 @@ class AheadBottomNav extends StatelessWidget {
       top: false,
       child: Container(
         height: 74,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            border: const Border(top: BorderSide(color: AheadColors.line))),
+          color: Theme.of(context).cardColor,
+          border: const Border(top: BorderSide(color: AheadColors.line)),
+        ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: List.generate(items.length, (i) {
             final active = i == index;
-            return InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => onChanged(i),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 160),
-                width: 62,
-                padding: const EdgeInsets.symmetric(vertical: 7),
-                decoration: BoxDecoration(
+            return Expanded(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => onChanged(i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  height: double.infinity,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  decoration: BoxDecoration(
                     color: active ? AheadColors.softBlue : Colors.transparent,
-                    borderRadius: BorderRadius.circular(16)),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(items[i].$1,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        items[i].$1,
                         color: active
                             ? AheadColors.blue
                             : (dark ? Colors.white70 : AheadColors.navy),
-                        size: 22),
-                    const SizedBox(height: 4),
-                    Text(items[i].$2,
+                        size: 20,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        items[i].$2,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            fontSize: 11,
-                            color: active
-                                ? AheadColors.blue
-                                : (dark ? Colors.white70 : AheadColors.navy),
-                            fontWeight:
-                                active ? FontWeight.w800 : FontWeight.w500)),
-                  ],
+                          fontSize: 10,
+                          height: 1.1,
+                          color: active
+                              ? AheadColors.blue
+                              : (dark ? Colors.white70 : AheadColors.navy),
+                          fontWeight:
+                              active ? FontWeight.w800 : FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -6472,7 +6656,6 @@ class SubjectDetailPage extends StatefulWidget {
 }
 
 class _SubjectDetailPageState extends State<SubjectDetailPage> {
-
   @override
   Widget build(BuildContext context) {
     final materials = aheadStore.materialsForSubject(widget.subject.id);
@@ -6660,7 +6843,7 @@ class FocusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 170,
+      constraints: const BoxConstraints(minHeight: 170),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
           color: active ? AheadColors.blue2 : const Color(0xFFDCE6FF),
@@ -6670,13 +6853,14 @@ class FocusCard extends StatelessWidget {
                 color: Color(0x10000000), blurRadius: 12, offset: Offset(0, 6))
           ]),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           IconBox(
               icon: icon,
               color: active ? Colors.white24 : const Color(0xFFC5D3F0),
               iconColor: active ? Colors.white : AheadColors.muted),
-          const Spacer(),
+          const SizedBox(height: 32),
           Text(title,
               style: TextStyle(
                   color: active ? Colors.white : AheadColors.text,
@@ -6960,18 +7144,26 @@ class FeaturedExamCard extends StatelessWidget {
               style: const TextStyle(
                   fontSize: 17, height: 1.45, color: AheadColors.navy)),
           const SizedBox(height: 22),
-          Row(children: [
-            Text('${exam.totalQuestions} Soal Pilihan Ganda',
-                style: const TextStyle(
-                    fontWeight: FontWeight.w900, color: AheadColors.navy)),
-            const Spacer(),
-            if (!compact)
-              AheadPill(result == null ? 'Buka Detail' : 'Sudah Dikerjakan',
-                  Colors.white,
-                  textColor: result == null
-                      ? AheadColors.blue
-                      : const Color(0xFF087A55))
-          ]),
+          LayoutBuilder(builder: (context, constraints) {
+            final showStatus = !compact && constraints.maxWidth >= 470;
+            return Row(children: [
+              Expanded(
+                child: Text('${exam.totalQuestions} Soal Pilihan Ganda',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w900, color: AheadColors.navy)),
+              ),
+              if (showStatus) ...[
+                const SizedBox(width: 8),
+                AheadPill(result == null ? 'Buka Detail' : 'Sudah Dikerjakan',
+                    Colors.white,
+                    textColor: result == null
+                        ? AheadColors.blue
+                        : const Color(0xFF087A55)),
+              ],
+            ]);
+          }),
         ],
       ),
     );
@@ -7061,11 +7253,19 @@ class ExamListCard extends StatelessWidget {
             ]),
             const SizedBox(height: 18),
             Row(children: [
-              const Text('Kesiapan Materi'),
-              const Spacer(),
-              Text(readiness == 0 ? 'Belum Dimulai' : '$readiness%',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w900, color: AheadColors.blue))
+              const Expanded(
+                child: Text('Kesiapan Materi',
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(readiness == 0 ? 'Belum Dimulai' : '$readiness%',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w900, color: AheadColors.blue)),
+              ),
             ]),
             const SizedBox(height: 8),
             AheadProgress(
@@ -7079,20 +7279,31 @@ class ExamListCard extends StatelessWidget {
                 color: dark ? const Color(0xFF1E293B) : AheadColors.bg,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Row(children: [
-                Icon(Icons.format_list_numbered_rounded,
-                    size: 18, color: AheadColors.blue),
-                Text(' ${exam.totalQuestions} soal'),
-                const SizedBox(width: 16),
-                Icon(Icons.schedule_rounded, size: 18, color: AheadColors.blue),
-                Text(' ${exam.durationMinutes} menit'),
-                const Spacer(),
-                AheadPill(completed ? 'Sudah Dikerjakan' : 'Buka Detail',
-                    completed ? const Color(0xFFDFF7EA) : AheadColors.softBlue,
-                    textColor: completed
-                        ? const Color(0xFF087A55)
-                        : AheadColors.blue)
-              ]),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.format_list_numbered_rounded,
+                        size: 18, color: AheadColors.blue),
+                    Text(' ${exam.totalQuestions} soal'),
+                  ]),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.schedule_rounded,
+                        size: 18, color: AheadColors.blue),
+                    Text(' ${exam.durationMinutes} menit'),
+                  ]),
+                  AheadPill(
+                      completed ? 'Sudah Dikerjakan' : 'Buka Detail',
+                      completed
+                          ? const Color(0xFFDFF7EA)
+                          : AheadColors.softBlue,
+                      textColor: completed
+                          ? const Color(0xFF087A55)
+                          : AheadColors.blue),
+                ],
+              ),
             ),
           ],
         ),
@@ -7273,25 +7484,48 @@ class ChoiceCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Container(
-        height: 118,
-        padding: const EdgeInsets.all(14),
+        constraints: const BoxConstraints(minHeight: 128),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
                 color: selected ? AheadColors.blue : const Color(0xFFD8E4F5),
                 width: selected ? 2 : 1)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Icon(icon, color: AheadColors.blue),
-          const Spacer(),
-          Text(title,
-              style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 17)),
-          Text(subtitle,
-              style: const TextStyle(color: AheadColors.muted, fontSize: 11))
-        ]),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: AheadColors.blue, size: 22),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AheadColors.muted,
+                    fontSize: 10,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -7616,30 +7850,33 @@ class MenuRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      minVerticalPadding: 16,
-      leading: IconBox(
-          icon: icon,
-          color: icon == Icons.bookmark_border_rounded
-              ? AheadColors.peach
-              : const Color(0xFFE9EDF3),
-          iconColor: AheadColors.navy),
-      title: Text(title,
-          style: TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurface)),
-      subtitle: Text(subtitle),
-      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-        if (dot) const Icon(Icons.circle, color: AheadColors.blue, size: 10),
-        if (badge != null)
-          AheadPill(
-              badge!, badge == '0' ? const Color(0xFFE9EDF3) : AheadColors.blue,
-              textColor: badge == '0' ? AheadColors.navy : Colors.white),
-        const SizedBox(width: 8),
-        const Icon(Icons.chevron_right_rounded)
-      ]),
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        onTap: onTap,
+        minVerticalPadding: 16,
+        leading: IconBox(
+            icon: icon,
+            color: icon == Icons.bookmark_border_rounded
+                ? AheadColors.peach
+                : const Color(0xFFE9EDF3),
+            iconColor: AheadColors.navy),
+        title: Text(title,
+            style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface)),
+        subtitle: Text(subtitle),
+        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+          if (dot) const Icon(Icons.circle, color: AheadColors.blue, size: 10),
+          if (badge != null)
+            AheadPill(badge!,
+                badge == '0' ? const Color(0xFFE9EDF3) : AheadColors.blue,
+                textColor: badge == '0' ? AheadColors.navy : Colors.white),
+          const SizedBox(width: 8),
+          const Icon(Icons.chevron_right_rounded)
+        ]),
+      ),
     );
   }
 }
@@ -7731,20 +7968,28 @@ class ScheduleTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(schedule.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             fontSize: 17, fontWeight: FontWeight.w900)),
                     Text('${subject.name} - ${schedule.type}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(color: AheadColors.muted)),
                   ],
                 ),
               ),
-              LiveScheduleCountdownPill(
+            ]),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerRight,
+              child: LiveScheduleCountdownPill(
                 schedule: schedule,
                 color:
                     schedule.daysLeft <= 3 ? AheadColors.peach : subject.tint,
                 textColor: AheadColors.navy,
               ),
-            ]),
+            ),
             const SizedBox(height: 14),
             Container(
               width: double.infinity,
@@ -7787,23 +8032,26 @@ class ScheduleTile extends StatelessWidget {
             const SizedBox(height: 8),
             AheadProgress(value: readiness / 100),
             const SizedBox(height: 14),
-            Row(children: [
-              OutlinedButton.icon(
-                  onPressed: onEdit,
-                  icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Edit')),
-              const SizedBox(width: 8),
-              IconButton(
-                  tooltip: 'Hapus jadwal',
-                  onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline_rounded,
-                      color: AheadColors.danger)),
-              const Spacer(),
-              Text('Timeline ujian',
-                  style: TextStyle(
-                      color: Colors.deepOrange.shade700,
-                      fontWeight: FontWeight.w900)),
-            ]),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                OutlinedButton.icon(
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('Edit')),
+                IconButton(
+                    tooltip: 'Hapus jadwal',
+                    onPressed: onDelete,
+                    icon: const Icon(Icons.delete_outline_rounded,
+                        color: AheadColors.danger)),
+                Text('Timeline ujian',
+                    style: TextStyle(
+                        color: Colors.deepOrange.shade700,
+                        fontWeight: FontWeight.w900)),
+              ],
+            ),
           ],
         ),
       ),
@@ -8033,6 +8281,96 @@ class _LiveScheduleCountdownTextState extends State<LiveScheduleCountdownText> {
   }
 }
 
+class MaterialVideoPanel extends StatelessWidget {
+  const MaterialVideoPanel({
+    super.key,
+    required this.videoId,
+    required this.caption,
+  });
+
+  final String? videoId;
+  final String? caption;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final id = videoId?.trim();
+    final hasVideo = id != null && id.isNotEmpty;
+    final player = hasVideo
+        ? _EmbeddedYoutubePlayer(videoId: id)
+        : AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Container(
+              color: dark ? const Color(0xFF1F2937) : Colors.white,
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.play_circle_outline_rounded,
+                      size: 46, color: AheadColors.blue),
+                  SizedBox(height: 8),
+                  Text(
+                    'Video pembelajaran belum ditambahkan',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: AheadColors.muted, fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+            ),
+          );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: player,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          caption ?? 'Video pembelajaran',
+          style: TextStyle(
+            fontSize: 12,
+            color: dark ? const Color(0xFFCBD5E1) : AheadColors.muted,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EmbeddedYoutubePlayer extends StatefulWidget {
+  const _EmbeddedYoutubePlayer({required this.videoId});
+
+  final String videoId;
+
+  @override
+  State<_EmbeddedYoutubePlayer> createState() => _EmbeddedYoutubePlayerState();
+}
+
+class _EmbeddedYoutubePlayerState extends State<_EmbeddedYoutubePlayer> {
+  late final YoutubePlayerController _controller =
+      YoutubePlayerController.fromVideoId(
+    videoId: widget.videoId,
+    autoPlay: false,
+    params: const YoutubePlayerParams(
+      showControls: true,
+      showFullscreenButton: true,
+    ),
+  );
+
+  @override
+  void dispose() {
+    unawaited(_controller.close());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return YoutubePlayer(controller: _controller, aspectRatio: 16 / 9);
+  }
+}
+
 class MaterialSlideDeck extends StatelessWidget {
   const MaterialSlideDeck({
     super.key,
@@ -8054,7 +8392,6 @@ class MaterialSlideDeck extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final imageHeight = MediaQuery.sizeOf(context).width >= 700 ? 180.0 : 150.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -8130,46 +8467,11 @@ class MaterialSlideDeck extends StatelessWidget {
                             ),
                           ],
                         ),
-                        if (slide.imageUrl != null) ...[
-                          const SizedBox(height: 16),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Container(
-                              height: imageHeight,
-                              width: double.infinity,
-                              color: dark
-                                  ? const Color(0xFF1F2937)
-                                  : Colors.white.withValues(alpha: .74),
-                              alignment: Alignment.center,
-                              child: Image.network(
-                                slide.imageUrl!,
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) => const Center(
-                                  child: Text(
-                                    'Gambar rujukan belum dapat dimuat',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: AheadColors.muted,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          if (slide.imageCaption != null) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              slide.imageCaption!,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: dark
-                                    ? const Color(0xFFCBD5E1)
-                                    : AheadColors.muted,
-                              ),
-                            ),
-                          ],
-                        ],
+                        const SizedBox(height: 16),
+                        MaterialVideoPanel(
+                          videoId: slide.youtubeVideoId,
+                          caption: slide.videoCaption,
+                        ),
                         const SizedBox(height: 18),
                         Text(
                           slide.body,
@@ -8479,9 +8781,14 @@ class UpcomingScheduleCard extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           const Positioned(
-            right: -18,
-            bottom: -24,
-            child: IgnorePointer(child: AnimatedFireCorner(size: 118)),
+            right: -8,
+            bottom: -18,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: .42,
+                child: AnimatedFireCorner(size: 88),
+              ),
+            ),
           ),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
@@ -8492,16 +8799,21 @@ class UpcomingScheduleCard extends StatelessWidget {
               const SizedBox(width: 10),
               const Expanded(
                 child: Text('UJIAN TERDEKAT',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.w900)),
               ),
-              const SizedBox(width: 48),
-              LiveScheduleCountdownPill(
+            ]),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerRight,
+              child: LiveScheduleCountdownPill(
                 schedule: schedule,
                 color: Colors.white,
                 textColor: const Color(0xFFB91C1C),
               ),
-            ]),
+            ),
             const SizedBox(height: 14),
             Text(schedule.title,
                 style: const TextStyle(

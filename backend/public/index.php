@@ -124,6 +124,15 @@ function ensure_exam_schedules_table(): void {
     )');
 }
 
+function ensure_user_app_state_table(): void {
+    db()->exec('CREATE TABLE IF NOT EXISTS user_app_states (
+        user_id BIGINT UNSIGNED PRIMARY KEY,
+        state_json LONGTEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )');
+}
+
 function public_schedule(array $row): array {
     return [
         'id' => $row['client_id'],
@@ -307,6 +316,47 @@ try {
 
     if ($method === 'GET' && $path === '/me') {
         respond(['user' => current_user()]);
+    }
+
+    if (($method === 'GET' || $method === 'POST') && $path === '/state') {
+        $user = current_user();
+        ensure_user_app_state_table();
+
+        if ($method === 'GET') {
+            $stmt = db()->prepare('SELECT state_json, DATE_FORMAT(updated_at, "%Y-%m-%dT%H:%i:%sZ") AS updated_at FROM user_app_states WHERE user_id = ? LIMIT 1');
+            $stmt->execute([(int)$user['id']]);
+            $row = $stmt->fetch();
+            if (!$row) {
+                respond(['data' => null, 'updatedAt' => null]);
+            }
+            $state = json_decode((string)$row['state_json'], true);
+            respond([
+                'data' => is_array($state) ? $state : null,
+                'updatedAt' => $row['updated_at'],
+            ]);
+        }
+
+        $data = json_input();
+        if (!isset($data['state']) || !is_array($data['state'])) {
+            respond(['error' => 'Data sinkronisasi tidak valid.'], 422);
+        }
+        $state = $data['state'];
+        unset($state['id'], $state['passwordDigest'], $state['hasPendingSync'],
+            $state['stateRevision'], $state['lastSyncedAt']);
+        $encoded = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($encoded === false) {
+            respond(['error' => 'Data sinkronisasi tidak dapat dibaca.'], 422);
+        }
+        $stmt = db()->prepare('INSERT INTO user_app_states (user_id, state_json)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE state_json = VALUES(state_json), updated_at = CURRENT_TIMESTAMP');
+        $stmt->execute([(int)$user['id'], $encoded]);
+        $updated = db()->prepare('SELECT DATE_FORMAT(updated_at, "%Y-%m-%dT%H:%i:%sZ") FROM user_app_states WHERE user_id = ?');
+        $updated->execute([(int)$user['id']]);
+        respond([
+            'message' => 'Data akun berhasil disinkronkan.',
+            'updatedAt' => $updated->fetchColumn(),
+        ]);
     }
 
     if ($method === 'GET' && $path === '/subjects') {

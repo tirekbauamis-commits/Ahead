@@ -168,7 +168,7 @@ Jalankan perintah dari folder hasil clone.
 5. Jika ada beberapa perangkat, masukkan ID perangkat yang ingin digunakan.
 6. Biarkan terminal launcher tetap berjalan selama aplikasi dipakai. Hentikan sesi dengan Ctrl+C.
 
-Launcher Android mengatur adb reverse tcp:8000 tcp:8000 agar aplikasi pada emulator/ponsel dapat mengakses API lokal komputer. Untuk menggunakan API dari perangkat Android yang dijalankan manual, jalankan reverse tersebut sebelum flutter run.
+Launcher Android mengatur adb reverse tcp:8000 tcp:8000 agar aplikasi pada emulator/ponsel dapat mengakses API lokal komputer. API PHP dijalankan dengan backend/public/index.php sebagai router agar seluruh path endpoint dapat diproses. Untuk menggunakan API dari perangkat Android yang dijalankan manual, jalankan reverse tersebut sebelum flutter run.
 
 ### Lokasi instalasi yang dipakai launcher
 
@@ -188,6 +188,8 @@ Endpoint utama yang tersedia di backend/public/index.php:
 | POST | /password/forgot | Membuat token reset password |
 | POST | /password/reset | Mengganti password menggunakan token |
 | GET | /me | Mengambil profil pengguna aktif |
+| GET | /state | Mengambil snapshot aktivitas pada akun |
+| POST | /state | Menyinkronkan profil dan aktivitas siswa |
 | GET | /subjects | Mengambil mata pelajaran |
 | GET | /materials | Mengambil materi belajar |
 | GET | /exams | Mengambil daftar ujian |

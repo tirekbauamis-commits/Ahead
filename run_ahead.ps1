@@ -105,7 +105,7 @@ if (Test-Backend) {
 
     if (Test-Path -LiteralPath $phpExe) {
         Write-Step 'Menyalakan Backend API AHEAD'
-        Start-Process -FilePath $phpExe -ArgumentList @('-S', '127.0.0.1:8000', '-t', 'backend/public') -WorkingDirectory $appDir -WindowStyle Hidden
+        Start-Process -FilePath $phpExe -ArgumentList @('-S', '127.0.0.1:8000', '-t', 'backend/public', 'backend/public/index.php') -WorkingDirectory $appDir -WindowStyle Hidden
         for ($i = 0; $i -lt 10; $i++) {
             Start-Sleep -Seconds 1
             if (Test-Backend) {

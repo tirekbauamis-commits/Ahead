@@ -44,6 +44,8 @@ Launcher aplikasi `JALANKAN_AHEAD.bat` dan `JALANKAN_AHEAD_HP.bat` juga menyiapk
 | `POST` | `/password/forgot` | Membuat token reset password |
 | `POST` | `/password/reset` | Mengganti password dengan token |
 | `GET` | `/me` | Mengambil profil pengguna aktif |
+| `GET` | `/state` | Mengambil cache aktivitas dan profil yang tersimpan pada akun |
+| `POST` | `/state` | Menyinkronkan profil, progres, materi tersimpan, latihan, ujian, catatan, dan aktivitas |
 | `GET` | `/subjects` | Mengambil daftar mata pelajaran |
 | `GET` | `/materials` | Mengambil daftar materi |
 | `GET` | `/exams` | Mengambil daftar ujian |
@@ -58,6 +60,7 @@ Endpoint yang memerlukan sesi memakai token autentikasi yang diterbitkan saat lo
 - **Google Sign-In:** route `/auth/google` memverifikasi `id_token` dengan `GOOGLE_CLIENT_ID`. Login Google perlu Client ID OAuth resmi yang sesuai platform.
 - **Reset password:** `/password/forgot` saat ini membuat token reset. Pada mode lokal respons menyertakan `dev_token`; kode belum mengirim email. Pengiriman email membutuhkan integrasi SMTP.
 - **AHEAD AI:** `/ai/chat` mengembalikan `ai_local_tutor_reply` dengan mode `local_tutor`. Route ini belum memanggil Gemini, OpenAI, atau model cloud. Nilai `OPENAI_API_KEY` pada `.env.example` tidak mengaktifkan pemanggilan model pada implementasi sekarang.
-- **Fallback aplikasi:** fallback login lokal berada di sisi aplikasi Flutter dan bukan sinkronisasi otomatis ke MySQL.
+- **Sinkronisasi akun:** Flutter menyimpan cache di perangkat dan mengirim perubahan akun ke `/state` setelah aktivitas saat token API aktif. Saat login, perubahan tertunda dari cache lokal dikirim; jika tidak ada perubahan lokal tertunda, data akun server dipulihkan. Jika API tidak tersedia, perubahan tetap tersimpan lokal dan dicoba kembali saat koneksi aktif. Jadwal ujian juga memakai endpoint `/schedules`.
+- **Fallback aplikasi:** akun offline tetap hanya tersimpan pada perangkat sampai pengguna masuk kembali melalui API.
 
 Lihat `../SETUP_GOOGLE_LOGIN.md` untuk langkah konfigurasi OAuth dan [README utama](../README.md) untuk menjalankan versi Web atau Android.
